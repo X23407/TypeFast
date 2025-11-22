@@ -1,0 +1,110 @@
+/* body,html {
+    /* margin-left: 10px; */
+    
+body{
+    z-index: 1;
+}
+
+.quick-span{
+    margin-left: 3vw;
+}
+
+.quick-span:hover{
+    background: linear-gradient(to right, red,orange,yellow);
+    color: transparent;
+    background-clip: text;
+    /* font-style: italic; */
+    transition: all .7 ease;
+    /* border: 2px solid brown;
+    border-radius: .5vw;
+    transition: all .03s ease;
+    background-color: orange; */
+}
+
+#logoContainer{
+    background-color: pink;
+    /* border: groove salmon ; */
+    border-radius: 1vw;
+    border: salmon 3px;
+    padding-left: 3vw;
+    user-select: none;
+}
+
+#quick-setting{
+    background-color: grey;
+    width: 80VW;
+    margin-left: 10vw;
+    border-radius: 5px;
+    user-select: none;
+    display: flex;
+    text-align: justify;
+}
+@keyframes blink {
+      0%, 100% {
+        opacity: 1; /* Fully visible */
+      }
+      50% {
+        opacity: 0; /* Fully invisible */
+      }
+    }
+
+.caret{
+    display: inline-block;
+    width: 2px;
+    height: 1em;  
+    background: black; 
+    margin-left: 2px;
+    animation: blink 1s infinite;
+
+    /* animation: blink 1s timing-function delay iteration-count direction fill-mode; */
+}
+
+#displayer{
+    margin-top: 5vh;
+    font-size: xx-large;
+    font-size: 8ch;
+    border: 3px double pink;
+    border-radius: 3vw;
+    padding-left: 3vw;
+    /* width: 98vw; */
+    user-select: none;
+    color: rgb(193, 177, 177);
+    word-wrap: normal;
+    height: 5lh;
+    cursor: default;
+    /* user-select: none; */
+    /* scrollbar-width: none; */
+}
+
+#statsDiv{
+    text-align: center;
+    /* background-color: orange; */
+    background-color: orange;
+    border-radius: 10px;
+    max-width: 1000px;
+}
+#motivater{
+    display: block;
+    font-size: large;
+}
+
+.question{
+    font-size: large;
+    font-weight: bold;
+    background-color: papayawhip;
+    display: block;
+}
+.answer{
+    font-size: large;
+    font-family: san-serif;
+    /* background-color: rgb(201, 130, 37); */
+}
+
+.q-container{
+    background-color: lime;
+    border: 3px solid salmon;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+    /* padding: 0%; */
+}
