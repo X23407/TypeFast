@@ -3,140 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <title>FastType – Stats</title>
+    <link rel="stylesheet" href="stats.css">
     <script src="stats.js"></script>
-    <style>
-        #up-div{
-            display: flex;
-            /* justify-content: space-between; or center, or flex-start */
-            align-items: flex-start;
-            margin-top: 15px;
-            justify-content: center;
-            padding: 3vw;
-        }
-        #image-div{
-            max-height: 50vh;
-            background-color: aqua;
-            width: 60%;
-            /* margin-right: 12px; */
-            /* margin-left: auto; */
-            display: inline-block;
-            margin-top: 15px;
-            /* height: 100%; */
-        }
-        #content-div{
-            max-height: 50vh;
-            background-color: antiquewhite;
-            width: 35%;
-            display: inline-block;
-            /* text-align: left; */
-            /* justify-content: left; */
-            margin-top: 15px;
-            /* height: 100%; */
-        }
-        #down-div{
-            background-color: yellow;
-            /* justify-content: space-evenly; */
-            justify-content: space-between;
-        }
-        #down-down-div{
-            background-color: rgb(128, 128, 87);
-            /* justify-content: space-evenly; */
-            justify-content: space-evenly;
-        }
-        .param{
-            display: inline-block;
-            margin-left: 3vw;
-            margin-right: 3vw;
-        }
-        input{
-            display: inline-block;
-            margin-top: 1vh;
-            margin-bottom: 1vh;
-            width: 20ch;
-            margin-left: 1.5vw;
-            margin-right: 1.5vw;
-            font-size: larger;
-        }
-    </style>
-    <script>
-        // console.log(window.innerWidth);
-        // alert(window.innerWidth);
-    </script>
 </head>
 <body>
-    <div id = "logoContainer">
-        <h2>FastType</h2>
-    </div>
-    <div id = "quick-setting">
-        <span  class = "quick-span">Punctuation</span>
-        <span class = "quick-span">Number</span>
-        <span class = "quick-span">Time</span>
-        <span class = "quick-span">Relax</span>
-        <span class = "quick-span">Customs</span>
-        <span class = "quick-span">Settings</span>
-    </div>
-    <center>
-    <div id = "statsDiv" >
-        <div id = "up-div">
-            <div id = "content-div">
-                <h4>WPM<sub>net</sub> : <span id = "wpm_net">34</span></h4>
-                <h4>Acuuracy : <span id ="accuracy">23</span></h4>
-                <h4>Total Time : <span id = "time">s</span></h4>
+
+    <!-- LOGO -->
+    <header class="logo">FastType</header>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <span id="punctuation" onclick="s.buttonClick('punctuation')">Punctuation</span>
+        <span id="number" onclick="s.buttonClick('number')">Number</span>
+        <span id="time" onclick="s.buttonClick('time')">Time <span id="clock"></span></span>
+        <span id="relax" onclick="s.buttonClick('relax')">Relax</span>
+        <!-- <span id="custom" onclick="s.buttonClick('custom')">Hands</span> -->
+        <span id="code" onclick="s.buttonClick('code')">Code</span>
+        <span id="arrow" onclick="s.buttonClick('arrow')">Arrow</span>
+        <span id="settings" onclick="s.setting()">Home</span>
+    </nav>
+
+    <!-- MAIN STAT BOX -->
+    <div class="stats-container">
+
+        <div class="stats-left">
+            <p><strong>WPM<sub>net</sub>:</strong> <span id="wpm_net">1</span></p>
+            <p><strong>Accuracy:</strong> <span id="accuracy">100%</span></p>
+            <p><strong>Total Time:</strong> <span id="time_s">30s</span></p>
+        </div>
+
+        <div class="stats-right">
+            <h2>Keep it up</h2>
+            <div class="stars">
+                <span id="s1" title="Accuracy above 80%">⭐ </span>
+                <span id = "s2" title = "Accuracy above 90%">⭐ </span>
+                <span id ="s3" title="Accuracy above 95%">⭐ </span>
+
             </div>
-            <div id = "image-div">
-                <span id = "motivater">Keep it up</span>
-                <div id = "img-container"></div>
-            </div>
         </div>
-        <div id = "down-div">
-            <h4 class = "param">Charcter : 
-                <span id="correct" title="correct">122</span>/<span id = "wrong" title="incorrect">3</span>/<span id = "extra" title="extra">3</span>
-            </h4>
-            <h4 class = "param">Test type : Punctuation</h4>
-            <h4 class = "param">WPM<sub>Total</sub>: <span id="wpm_total">N/A</span></h4>
-        </div>
-        <div id="down-down-div">
-            <input type="button" value="Redo">
-            <input type="button" value="Improve">
-            <input type="button" id ="next" onclick="window.open('index.html', '_self')" value="Next">
-        </div>
-        <!-- align = "center" -->
     </div>
-    </center>
+
+    <!-- SUB INFO -->
+     <div class="sub-info">
+        Characters: 
+        <span id="correct" title="correct">3</span> /
+        <span id="wrong" title="incorrect">0</span> /
+        <span id="extra" title="extra">97</span>
+        •  Test Type: <span id="test_type">Punctuation</span>
+        • WPM<sub>Total</sub>: <span id="wpm_total">1</span>
+    </div>
+    <!-- <div class="sub-info">
+        Characters: 3/0/97   •   Test Type: Punctuation   •   WPM<sub>Total</sub>: 1
+    </div> -->
+
+    <!-- BUTTONS -->
+    <div class="btn-box">
+        <button>Redo</button>
+        <button onclick="s.improve()">Improve</button>
+        <button id="next" onclick="s.next()">Next</button>
+    </div>
+    <footer class="footer">© 2025 FastType. All rights reserved.</footer>
 
     <script>
-        function starAdder(type = "fill"){
-            let container = document.getElementById("img-container");
-            let i = document.createElement('img');
-            if (type == "fill"){
-                i.src = "image/fill.png";
-            }else{
-                i.src = "image/hollow.png"
-            }
-            i.alt = "Star image";
-            i.style.maxHeight = `${conDiv-35}px`
-            container.appendChild(i);
-        }
-        //equating the height of imgcontainer and 
-        let imgDiv = document.getElementById("image-div").clientHeight;
-        let conDiv = document.getElementById("content-div").clientHeight;
-        imgDiv = imgDiv<conDiv?conDiv:imgDiv;
-        imgDiv += 30;
-        document.getElementById("content-div").style.height = `${imgDiv}px`;
-        document.getElementById("image-div").style.height = `${imgDiv}px`;
-        // starAdder();
-        // starAdder();
-        // starAdder("hollow");
-        // starAdder()
-        // starAdder("hollow");
-
         let s = new stats();
         s.updateData();
-
-
-        // alert(imgHeight)
     </script>
+
 </body>
 </html>

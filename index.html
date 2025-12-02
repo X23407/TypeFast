@@ -1,256 +1,54 @@
- <html>
-    <head>
-        <title>TYpeWriter</title>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="stylesheet" href="style.css">
-            <script src="main.js"></script>
-        </head>
-    <body>
-        <div style="z-index: 6;overflow: hidden;display: flex;">
-            <label style="display: flex;z-index: 255;">Apple</label>
-        </div>
-        <!-- <time datetime="local">4:30</time> -->
-        <div id = "logoContainer">
-            <h2>FastType</h2>
-        </div>
-        <div id = "quick-setting">
-            <span  class = "quick-span">Punctuation</span>
-            <span class = "quick-span">Number</span>
-            <span class = "quick-span">Time</span>
-            <span class = "quick-span">Relax</span>
-            <span class = "quick-span">Customs</span>
-            <span class = "quick-span">Settings</span>
-        </div>
-        <div>
-            <p id = "displayer">This is a sample text that you have to type. Here more text will be added soon<span class="caret"></span>!</p>
-        </div>
-        <div id = "continue-div" style="display: none;">
-            <input type="button" value="Continue">
-        </div>
-        <!-- <div>
-             <textarea id = "displayer">This is a sample text  that you have to type. Here more text will be added soon!</textarea> -->
-            <!-- <textarea name="" id="displayer"  placeholder="This is a sample text  that you have to type. Here more text will be added soon!"></textarea>
-        </div> -->
-        <script>
-            m = new main();
-            random_lines = [
-                "The quick brown fox jumps over the lazy dog.",
-                "Raindrops tapping softly against the window pane.",
-                "A sudden breeze carried the scent of jasmine.",
-                "Coding late at night feels oddly peaceful.",
-                "The library was silent except for turning pages.",
-                "A cat stretched lazily under the warm sunlight.",
-                "He scribbled notes furiously before the deadline.",
-                "The mountain peaks glowed orange at sunrise.",
-                "Music echoed faintly through the empty hallway.",
-                "She smiled as the puzzle pieces finally fit.",
-                "A lantern flickered in the quiet village street.",
-                "The aroma of coffee filled the small cafe.",
-                "Stars shimmered brightly in the midnight sky.",
-                "The old typewriter clacked with rhythmic precision.",
-                "A gentle ripple spread across the calm lake.",
-                "The train whistle signaled its departure at dawn.",
-                "He found a hidden key beneath the rug.",
-                "The festival lights sparkled in every color.",
-                "A forgotten diary lay covered in dust.",
-                "The clock ticked steadily, marking each passing second.",
-                "Soft thunder rolled across the distant hills.",
-                "Fresh paint filled the air with a sharp scent.",
-                "A lone bicycle leaned against the brick wall.",
-                "Warm bread cooled on a kitchen counter.",
-                "Fireflies drifted lazily above the tall grass.",
-                "The old radio crackled back to life.",
-                "A paper boat floated gently down the stream.",
-                "Dust swirled in golden beams of sunlight.",
-                "Wind chimes sang in the passing breeze.",
-                "A notebook lay open, its pages half-filled.",
-                "Snowflakes melted instantly on her palm.",
-                "The candle flame danced wildly for a moment.",
-                "A distant owl hooted in the quiet night.",
-                "The teapot whistled cheerfully on the stove.",
-                "Footprints trailed off into the soft sand.",
-                "He tightened his scarf as the cold wind blew.",
-                "The elevator dinged softly at each floor.",
-                "A kite fluttered high above the beach.",
-                "The classroom buzzed with low chatter.",
-                "Leaves rustled gently along the sidewalk.",
-                "The pastry crumbled perfectly at each bite.",
-                "A rainbow arched boldly across the sky.",
-                "The old dog wagged its tail slowly.",
-                "A cool mist hovered above the valley.",
-                "The candle dripped wax onto the table.",
-                "A mailbox creaked as it opened.",
-                "The seedlings sprouted after last night’s rain.",
-                "A car horn echoed faintly down the street.",
-                "The blanket felt warm against the winter chill.",
-                "The mirror reflected a soft morning glow.",
-                "He hummed a tune without realizing.",
-                "The lake reflected the moon like glass.",
-                "A soft purr rumbled from the kitten.",
-                "The spiral staircase wound upward endlessly.",
-                "A pencil rolled off the desk silently.",
-                "The ocean waves sparkled beneath the sun.",
-                "The old bridge groaned under each step.",
-                "Bubbles drifted upward in the sunlight.",
-                "The stopwatch clicked to a sudden halt.",
-                "Morning dew shimmered on each blade of grass.",
-                "The wooden floor creaked beneath his boots.",
-                "A seagull screeched overhead as it passed.",
-                "The bakery door chimed as she walked in.",
-                "The clouds parted to reveal a bright moon.",
-                "An old postcard lay tucked inside a book.",
-                "The fountain splashed lightly in the courtyard.",
-                "He brushed sand off his shoes.",
-                "A pair of glasses rested on the dusty shelf.",
-                "The wind howled past the narrow alley.",
-                "The cozy cabin smelled of pinewood.",
-                "Raindrops clung to the glass like tiny jewels.",
-                "The engine sputtered before roaring awake.",
-                "A butterfly hovered for a brief moment.",
-                "The clock tower chimed across the square.",
-                "A gentle knock echoed through the hallway.",
-                "Fire crackled merrily in the hearth.",
-                "The swing creaked as it moved slowly.",
-                "He tucked the letter into his pocket.",
-                "A sparkler fizzed brightly under the night sky.",
-                "The compass needle quivered.",
-                "Soft fabric brushed against her hand.",
-                "A suitcase thudded onto the floor.",
-                "The lifeguard’s whistle pierced the air.",
-                "A map fluttered in the wind.",
-                "The curtains billowed outward.",
-                "A pigeon cooed from the rooftop.",
-                "He sipped tea thoughtfully.",
-                "A mushroom sprouted under the oak tree.",
-                "The bench was still damp from rain.",
-                "A quiet hum filled the workshop.",
-                "The spotlight illuminated the empty stage.",
-                "A paperclip snapped in half.",
-                "The forest floor crackled underfoot.",
-                "A feather drifted downward slowly.",
-                "Her bracelet jingled as she walked.",
-                "The room smelled faintly of lavender.",
-                "A coin spun loudly on the table.",
-                "The clouds darkened before the storm.",
-                "A shoelace dragged loosely behind him.",
-                "The attic was thick with cobwebs.",
-                "She closed her umbrella with a shake.",
-                "A fox darted across the snowy path.",
-                "A candlewick glowed red before fading.",
-                "The ferris wheel turned lazily.",
-                "A gentle cough echoed in the hallway.",
-                "The chalk squeaked across the board.",
-                "A scarf fluttered behind her.",
-                "Cold air seeped through the window crack.",
-                "A puddle reflected the neon lights.",
-                "The doorknob felt unusually warm.",
-                "A kite string tangled in the branches.",
-                "The field rustled with hidden insects.",
-                "A spoon clattered into the sink.",
-                "The tram bell rang sharply.",
-                "Her shadow stretched across the ground.",
-                "A whisper drifted from the next room.",
-                "The walkway shimmered after rainfall.",
-                "A mailbox flag bobbed up and down.",
-                "The cobblestones were slick with rain.",
-                "The horizon glowed faintly at dusk.",
-                "A raven perched on the fence.",
-                "The soda fizzed loudly when opened.",
-                "A wooden flute lay beside the fire.",
-                "The windmill blades turned slowly.",
-                "The staircase spiraled downward.",
-                "A small flame flickered dangerously.",
-                "The motorcycle roared past.",
-                "A daisy swayed gently in the breeze.",
-                "The coin purse jingled faintly.",
-                "A thin fog crawled across the field.",
-                "The kettle bubbled softly.",
-                "A newspaper rustled in the wind.",
-                "The night air carried distant laughter.",
-                "The old gate screeched open.",
-                "A lantern glowed softly in the dark.",
-                "The paintbrush glided smoothly.",
-                "A squirrel darted up the tree.",
-                "The bakery smelled heavenly.",
-                "A trolley rattled down the tracks.",
-                "The window latch clicked shut.",
-                "A paper crane sat on the table.",
-                "Snow crunched under their boots.",
-                "The suitcase zipper jammed.",
-                "The forest echoed with distant birds.",
-                "A leaf skittered across the pavement.",
-                "The projector whirred quietly.",
-                "A dog barked in the distance.",
-                "The elevator hummed upward.",
-                "A sleepy yawn filled the room.",
-                "The streetlamp flickered on.",
-                "A breeze tugged at his collar.",
-                "The library card slipped from her hand.",
-                "A small frog leapt into the pond.",
-                "The fountain lights shimmered.",
-                "A violin note hung in the air.",
-                "The floor tiles felt cool.",
-                "A distant train rumbled.",
-                "The clouds glowed pink at sunset.",
-                "A lone star shone brightly.",
-                "The river flowed steadily onward.",
-                "A moth tapped against the lampshade.",
-                "The breadknife scraped the cutting board.",
-                "A soft sneeze broke the silence.",
-                "The bell tower loomed overhead.",
-                "A pencil snapped mid-sentence.",
-                "The pond rippled as fish swam beneath.",
-                "A gentle breeze rustled the curtains.",
-                "The stove hissed as it heated.",
-                "A cat pawed at the edge of the pillow.",
-                "The lantern's glass clinked softly.",
-                "A clock chimed from across town.",
-                "The reeds whispered in the wind.",
-                "A sparrow hopped across the fence.",
-                "The chair wobbled slightly.",
-                "A beam of light pierced the clouds.",
-                "The aroma of spices filled the room.",
-                "A branch snapped somewhere nearby.",
-                "The ocean breeze tasted salty.",
-                "A crumpled note lay abandoned.",
-                "The playground sat empty and still.",
-                "A candle guttered in the wind.",
-                "The shadows danced across the wall.",
-                "A squirrel chattered angrily.",
-                "The tap dripped rhythmically.",
-                "A crow cawed overhead.",
-                "The page turned with a soft rustle.",
-                "A backpack thudded onto the floor.",
-                "The screen glowed in the dark.",
-                "A violin case rested against the wall.",
-                "The street grew quiet after midnight.",
-                "A pebble skipped across the water.",
-                "The fountain's spray sparkled like diamonds.",
-                "A leaf floated gently downward.",
-                "The cat hissed at a passing dog.",
-                "A whisper of wind brushed the treetops.",
-                "The chandelier glimmered in the light.",
-                "A gentle sigh escaped her lips.",
-                "The floor was cool beneath bare feet.",
-                "A lone balloon drifted skyward.",
-                "The rooftop glinted in the sun.",
-                "A twig snapped beneath his boot.",
-                "The bookstore smelled of old paper.",
-                "A slow drip echoed in the cave.",
-                "The berries glistened with dew.",
-                "A distant bell echoed faintly.",
-                "The blanket wrapped snugly around him.",
-                "A lantern bobbed along the street.",
-                "The old clock pendulum swung lazily.",
-                "A raindrop ran down the window.",
-                "The daffodils waved in the wind."
-            ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastType</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="main.js"></script>
+</head>
+<body>
 
-            // console.clear();
-            document.getElementById("displayer").innerHTML = `<span class="caret"></span>` + random_lines[Math.round(Math.random()* random_lines.length)] + " " + random_lines[Math.round(Math.random()* random_lines.length)] +" " + random_lines[Math.round(Math.random()* random_lines.length)]
-            // document.getElementById("displayer").innerHTML = `<span class="caret"></span>`+ "Yatish"// + random_lines[Math.round(Math.random()* random_lines.length)]
+    <!-- LOGO -->
+    <header class="logo">
+        FastType
+    </header>
 
-        </script>
-    </body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <span  id ="punctuation" onclick="m.buttonClick('punctuation')" >Punctuation</span>
+        <span  id = "number" onclick="m.buttonClick('number')">Number</span>
+        <span  id="time" onclick="m.buttonClick('time')">Time <span id="clock"></span></span>
+        <span  id="relax" onclick="m.buttonClick('relax')">Relax</span>
+        <!-- <span  id="custom" onclick="m.hand_booster()">L-Boost: 100</span> -->
+        <!-- <span  id="custom" onclick="m.buttonClick('custom')">L-Boost: 70</span> -->
+        <span  id="code" onclick="m.buttonClick('code')">Code</span>
+        <span  id="arrow" onclick="m.buttonClick('arrow')">Arrow</span>
+        <span  id = "settings" onclick="m.setting()">Home</span>
+    </nav>
+
+    <!-- MAIN TEXT BOX -->
+    <div class="typing-box">
+        <p id ="displayer">
+            A pigeon cooed from the rooftop. <span class="caret"></span>
+            The old gate screeched open.  
+            A paperclip snapped in half.
+        </p>
+    </div>
+
+    <div id = "continue-div" style="display:none;text-align: center;">
+        <center>
+            <span  id = "settings" class = "active" >Press Enter to Continue....</span>
+        </center>
+    </div>
+    
+    <footer class="footer">© 2025 FastType. All rights reserved.</footer>
+
+
+    <script>
+        m = new main();
+        m.modeSelecter();
+    </script>
+
+</body>
 </html>

@@ -1,0 +1,78 @@
+/* ---------- GLOBAL ---------- */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Georgia, serif;
+    background: radial-gradient(circle at top, #1a0030, #0d001c 70%);
+    color: #e7e2f0;
+}
+
+/* ---------- LOGO ---------- */
+.logo {
+    text-align: center;
+    font-size: 48px;
+    color: #4be4ff;
+    margin-top: 30px;
+    text-shadow: 0 0 8px #4be4ff, 0 0 25px #4be4ff;
+    font-weight: bold;
+}
+
+/* ---------- PAGE TITLE ---------- */
+.page-title {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 26px;
+    color: #d0c4de;
+}
+
+/* ---------- MAIN CONTAINER ---------- */
+.content-container {
+    width: 80%;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* ---------- GLASS BOX ---------- */
+.glass-box {
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid #4be4ff99;
+    border-radius: 18px;
+    padding: 25px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 20px #4be4ff33;
+}
+
+/* ---------- HEADINGS ---------- */
+.glass-box h3 {
+    color: #4be4ff;
+    text-shadow: 0 0 12px #4be4ff;
+    margin-bottom: 15px;
+}
+
+.glass-box h4 {
+    margin-top: 25px;
+    color: #aeeaff;
+}
+
+/* ---------- LISTS ---------- */
+ul {
+    line-height: 1.8;
+}
+
+a {
+    color: #4be4ff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-shadow: 0 0 8px #4be4ff;
+}
+
+/* ---------- FOOTER ---------- */
+.footer {
+    text-align: center;
+    margin: 40px 0;
+    color: #c9bfd5;
+}

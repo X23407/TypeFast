@@ -1,0 +1,148 @@
+/* ---------- GLOBAL ---------- */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Georgia, serif;
+    background: radial-gradient(circle at top, #1a0030, #0c001a 70%);
+    color: #d4cedd;
+}
+
+/* ---------- LOGO ---------- */
+.logo {
+    font-size: 48px;
+    text-align: center;
+    margin-top: 30px;
+    color: #4be4ff;
+    text-shadow: 0 0 10px #4be4ff, 0 0 30px #4be4ff;
+    font-weight: bold;
+}
+
+/* ---------- NAVBAR ---------- */
+.navbar {
+    width: 80%;
+    margin: 20px auto;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(6px);
+    border-radius: 10px;
+
+    display: flex;
+    justify-content: space-around;
+}
+
+.navbar span {
+    text-decoration: none;
+    font-size: 16px;
+    color: #d5d5d5;
+    transition: 0.3s;
+}
+
+.navbar span:hover {
+    color: #4be4ff;
+    text-shadow: 0 0 10px #4be4ff;
+}
+
+.navbar .active {
+    color: #4be4ff;
+    text-shadow: 0 0 10px #4be4ff, 0 0 20px #4be4ff;
+}
+
+/* ---------- STATS BOX ---------- */
+.stats-container {
+    width: 80%;
+    margin: 60px auto;
+    padding: 40px;
+
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(8px);
+
+    border: 3px solid #4be4ff;
+    border-radius: 25px;
+    box-shadow: 0 0 20px #4be4ff66;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stats-left {
+    width: 40%;
+    font-size: 22px;
+    line-height: 2;
+}
+
+.stats-right {
+    width: 50%;
+    text-align: center;
+}
+
+.stats-right h2 {
+    color: #4be4ff;
+    text-shadow: 0 0 15px #4be4ff;
+    margin-bottom: 20px;
+}
+
+.stars {
+    font-size: 50px;
+    letter-spacing: 10px;
+}
+
+@media (min-width: 1000px) {
+    .stars {
+        font-size: 120px; /* or any size you prefer */
+        line-height: 10vh;
+    }
+}
+
+
+
+
+/* ---------- SUB INFO ---------- */
+.sub-info {
+    margin: 20px auto;
+    width: 80%;
+    text-align: center;
+    font-size: 18px;
+    color: #e0d7eb;
+}
+
+/* ---------- BUTTONS ---------- */
+.btn-box {
+    width: 60%;
+    margin: 40px auto;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.btn-box button {
+    padding: 10px 40px;
+    font-size: 18px;
+    color: #000;
+    background: #4be4ff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+
+    box-shadow: 0 0 10px #4be4ff, 0 0 20px #4be4ff66;
+}
+
+.btn-box button:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 20px #4be4ff, 0 0 40px #4be4ff99;
+}
+
+/* ---------- STAR ---------- */
+.empty{
+    background: rgb(41, 109, 177);
+    color: transparent;
+    background-clip: text;
+}
+
+/* ---------- FOOTER ---------- */
+.footer {
+    text-align: center;
+    margin: 40px 0;
+    color: #c9bfd5;
+}
+ 

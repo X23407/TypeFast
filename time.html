@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    div{
+        font-size: 30vh;
+    }
+</style>
+<body>
+    <div id = "watch">18:07:22</div>
+
+    <script>
+        function timeUpdater(){
+            let date = new Date();
+            let h = date.getHours();
+            let m = date.getMinutes();
+            let s = date.getSeconds();
+            date = JSON.stringify(date);
+            //formatig the time for displaying
+            if (h<10){
+                h = "0"+h;
+            }
+            if (m<10){
+                m = "0"+m;
+            }
+            if (s<10){
+                s = "0"+s;
+            }
+
+            document.getElementById("watch").innerHTML =  `${h}:${m}:${s}`;
+            console.log(date);
+        }
+        timeUpdater()
+        setInterval(timeUpdater,1000)
+    </script>
+</body>
+</html>

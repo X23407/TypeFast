@@ -1,11 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+<meta charset="UTF-8" />
+<title>Dizzy Accelerating Spin</title>
+<style>
+  :root {
+    --neon-cyan: #00eaff;
+    --neon-magenta: #ff00c8;
+    --bg: #0a0f1e;
+  }
+
+  body {
+    background: radial-gradient(800px circle at 20% 20%, #0f1a33, var(--bg));
+    color: white;
+    font-family: system-ui, sans-serif;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+  }
+
+  .disk {
+    display: inline-block;
+    padding: 16px 28px;
+    border-radius: 48px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--neon-cyan);
+    border: 2px solid rgba(0, 234, 255, 0.4);
+    box-shadow:
+      0 0 8px rgba(0, 234, 255, 0.5),
+      0 0 24px rgba(255, 0, 200, 0.25) inset;
+    backdrop-filter: blur(2px);
+    will-change: transform, filter, opacity;
+    /* Layered animations: main spin + end-stage shake/flicker */
+    animation:
+      dizzySpin 3.2s cubic-bezier(0.6, 0, 1, 1) forwards,
+      failShake 0.6s ease-in-out 2 2.7s,
+      flicker 0.5s steps(6, end) 1 2.85s;
+  }
+
+  /* Accelerating rotation + “dizzy” visual buildup */
+  @keyframes dizzySpin {
+    0%   { transform: rotateZ(0deg) scale(1); filter: none; opacity: 1; }
+    10%  { transform: rotateZ(40deg) scale(1.005); }
+    20%  { transform: rotateZ(180deg) scale(1.01); }
+    35%  { transform: rotateZ(540deg) scale(1.015); filter: saturate(1.1); }
+    50%  { transform: rotateZ(1200deg) scale(1.02); filter: saturate(1.2) hue-rotate(20deg); }
+    65%  { transform: rotateZ(2100deg) scale(1.03) skewX(1deg) skewY(1deg); filter: blur(0.6px) saturate(1.35) hue-rotate(60deg); }
+    78%  { transform: rotateZ(2950deg) scale(1.04) skewX(1.6deg) skewY(1.6deg); filter: blur(1px) saturate(1.5) hue-rotate(110deg); }
+    88%  { transform: rotateZ(3200deg) scale(1.06); filter: blur(1.5px) saturate(1.6) hue-rotate(160deg); }
+    /* Abrupt deceleration and “halt” */
+    96%  { transform: rotateZ(3215deg) scale(1.02); filter: blur(0.6px) saturate(1.2); }
+    100% { transform: rotateZ(3220deg) scale(1) skewX(0) skewY(0); filter: none; opacity: 1; }
+  }
+
+  /* End-stage shake to suggest “something went wrong” */
+  @keyframes failShake {
+    0%   { transform: rotateZ(3220deg) translateX(0); }
+    20%  { transform: rotateZ(3221deg) translateX(-1px); }
+    40%  { transform: rotateZ(3219deg) translateX(2px); }
+    60%  { transform: rotateZ(3222deg) translateX(-2px); }
+    80%  { transform: rotateZ(3218deg) translateX(1px); }
+    100% { transform: rotateZ(3220deg) translateX(0); }
+  }
+
+  /* Brief brightness flicker to sell the “glitch” */
+  @keyframes flicker {
+    0%   { opacity: 1; text-shadow: 0 0 10px var(--neon-cyan), 0 0 22px var(--neon-magenta); }
+    30%  { opacity: 0.6; text-shadow: 0 0 4px var(--neon-cyan), 0 0 10px var(--neon-magenta); }
+    60%  { opacity: 0.85; text-shadow: 0 0 8px var(--neon-cyan), 0 0 18px var(--neon-magenta); }
+    100% { opacity: 1; text-shadow: 0 0 10px var(--neon-cyan), 0 0 22px var(--neon-magenta); }
+  }
+
+  /* Optional: hover to replay */
+  .disk:hover {
+    animation:
+      dizzySpin 3.2s cubic-bezier(0.6, 0, 1, 1) forwards,
+      failShake 0.6s ease-in-out 2 2.7s,
+      flicker 0.5s steps(6, end) 1 2.85s;
+  }
+</style>
 </head>
 <body>
-  
+  <div class="disk">System spinning…</div>
 </body>
 </html>
