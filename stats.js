@@ -46,6 +46,10 @@ class stats{
     buttonClick(mode=false){
         if (mode == false){
             let mode = localStorage.getItem("mode");
+            if (!mode){
+                mode = "relax";
+                /*Avoiding error for the first user*/
+            }
             document.getElementById(mode).classList.add("active");
         }else{
             localStorage.setItem("mode",mode);
@@ -56,8 +60,11 @@ class stats{
 
     updateData(){
         // this.heightAdjuster()
-        this.loadData();
         localStorage.setItem("redirect",false);
+        if (!this.loadData()){
+            return;
+            /* Error Handling */
+        };
         document.getElementById("wpm_net").innerHTML = this.correctReader("wpm_net");
         document.getElementById("accuracy").innerHTML = this.correctReader("accuracy");
         document.getElementById("time_s").innerHTML = `${this.correctReader("time")}s`;
@@ -72,33 +79,46 @@ class stats{
     }
 
     starFiller(accuracy){
-        // accuracy =80;
+        accuracy =95;
         // alert(accuracy);
+        let message = "";
         if (accuracy>=95){
             document.getElementById("s1").classList.remove("empty"); 
             document.getElementById("s2").classList.remove("empty"); 
-            document.getElementById("s3").classList.remove("empty"); 
+            document.getElementById("s3").classList.remove("empty");
+            let choice = ["Great Accuracy!!!","Awesome Job!!!","keep it up!!!"]
+            message = choice[Math.floor(Math.random()*choice.length)];
         }else if (accuracy >=90){
             document.getElementById("s1").classList.remove("empty"); 
             document.getElementById("s2").classList.remove("empty"); 
             document.getElementById("s3").classList.add("empty"); 
+            let choice = ["Good Accuracy!!!","Not great accuracy!!!","You can increase little more accuracy!!!"]
+            message = choice[Math.floor(Math.random()*choice.length)];
         }else if (accuracy >=80){
             document.getElementById("s1").classList.remove("empty"); 
             document.getElementById("s2").classList.add("empty"); 
             document.getElementById("s3").classList.add("empty"); 
+            let choice = ["One Star!!!","Today One star, Tomrrow two Star!!!","Never give up!!!","Keep Practicing!!!"]
+            message = choice[Math.floor(Math.random()*choice.length)];
         }else{
             document.getElementById("s1").classList.add("empty"); 
             document.getElementById("s2").classList.add("empty"); 
             document.getElementById("s3").classList.add("empty"); 
+            let choice = ["One Star!!!","No Worries, Keep gooing!!!","Bingo, Keep practicing!!!"]
+            message = choice[Math.floor(Math.random()*choice.length)];
         }
+        document.getElementById("motivater").innerHTML = message;
     }
 
     loadData(){
         this.curData = localStorage.getItem("dataPass");
+        if (!this.curData){
+            return false;
+        }
         this.curData = JSON.parse(this.curData);
         this.wrong_list = JSON.parse(this.curData["wrong_list"]);
         console.log(this.curData);
-        return;
+        return true;
     }
 
     // starAdder(type = "fill"){

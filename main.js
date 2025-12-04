@@ -14,6 +14,12 @@ class main{
         this.correctCount =0;
         this.random_lines = false;
         this.mode=localStorage.getItem("mode");//"default";
+        if (!this.mode){
+            this.mode ="relax";
+            // alert("Hello There!, Welcome to our app");
+            /*handling the case when the user is opening for the first time or when the data is not found in browser
+            in order to prevent error*/
+        }
         this.dataHandler();
         this.timeBtn = false;
         this.buttonClick(this.mode);
