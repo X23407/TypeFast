@@ -44,6 +44,17 @@ body {
     box-shadow: 0 0 20px #4be4ff33;
 }
 
+/* ----------- QUESTION ----------- */
+.question{
+    font-size: large;
+    font-weight: bold;
+    /* background-color: papayawhip; */
+    display: block;
+}
+
+.answer{
+    font-size: large;
+}
 /* ---------- HEADINGS ---------- */
 .glass-box h3 {
     color: #4be4ff;

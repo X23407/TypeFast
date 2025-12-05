@@ -15,6 +15,10 @@ class stats{
         })
     }
 
+    setting(){
+        window.location.href = "home.html";
+    }
+
 
     correctReader(value){
         // value ="wpm_net";
@@ -73,13 +77,10 @@ class stats{
         document.getElementById("extra").innerHTML = this.correctReader("extra");
         document.getElementById("wpm_total").innerHTML = this.correctReader("wpm");
         this.starFiller(this.curData["accuracy"]);
-        // this.starAdder("fill");
-        // this.starAdder("fill");
-        // this.starAdder("hollow");
     }
 
     starFiller(accuracy){
-        accuracy =95;
+        // accuracy =95;
         // alert(accuracy);
         let message = "";
         if (accuracy>=95){
