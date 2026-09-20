@@ -6,6 +6,7 @@
     <title>FastType – Stats</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="stats.css">
+    <link rel="stylesheet" href="palette.css">
     <script src="stats.js"></script>
 </head>
 <body>
@@ -27,14 +28,20 @@
                 <span id="code" onclick="s.buttonClick('code')">&lt;/&gt; Code</span>
             </nav>
 
-            <!-- Right Modes (Constraint) - Just for consistency, non-functional in stats or we can just show static UI -->
+            <!-- Right Modes (Constraint) -->
             <nav class="nav-group" style="min-width: 440px; justify-content: space-between;">
-                <span style="color: var(--text-secondary); cursor: default; padding-right: 5px;">Time ▼</span>
-                <span class="constraint-time active" style="cursor: default;">15s</span>
-                <span class="constraint-time" style="cursor: default;">30s</span>
-                <span class="constraint-time" style="cursor: default;">60s</span>
-                <span class="constraint-time" style="cursor: default;">120s</span>
-                <span class="constraint-time" style="cursor: default;">Off</span>
+                <span id="constraint-toggle" style="color: var(--text-secondary); cursor: pointer; padding-right: 5px;" onclick="s.toggleConstraintMode()">Time ▼</span>
+                
+                <span id="time-15" class="constraint-time" onclick="s.setTime(15)">15s</span>
+                <span id="time-30" class="constraint-time" onclick="s.setTime(30)">30s</span>
+                <span id="time-60" class="constraint-time" onclick="s.setTime(60)">60s</span>
+                <span id="time-120" class="constraint-time" onclick="s.setTime(120)">120s</span>
+                <span id="time-0" class="constraint-time" onclick="s.setTime(0)">Off</span>
+
+                <span id="word-short" class="constraint-word" style="display:none;" onclick="s.setWordMode('short')">Short</span>
+                <span id="word-medium" class="constraint-word" style="display:none;" onclick="s.setWordMode('medium')">Medium</span>
+                <span id="word-large" class="constraint-word" style="display:none;" onclick="s.setWordMode('large')">Large</span>
+                <span id="word-xlarge" class="constraint-word" style="display:none;" onclick="s.setWordMode('xlarge')">X-Large</span>
             </nav>
         </div>
 
@@ -82,7 +89,7 @@
         <footer class="footer">
             <nav class="footer-nav">
                 <a href="home.html">Home</a>
-                <a href="#">GitHub</a>
+                <a href="https://github.com/X23407/TypeFast" target="_blank">GitHub</a>
                 <a href="help-and-support.html">Privacy</a>
             </nav>
         </footer>
@@ -105,6 +112,6 @@
         }
         s.updateData();
     </script>
-
+    <script src="palette.js"></script>
 </body>
 </html>

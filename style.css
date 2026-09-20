@@ -1,5 +1,5 @@
 /* ---------- THEME VARIABLES ---------- */
-:root {
+:root, :root.theme-light {
     /* Light Theme (Default) */
     --bg-color: #f4f4f5;
     --text-primary: #18181b;
@@ -19,7 +19,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not(.theme-light) {
         /* Dark Theme */
         --bg-color: #09090b;
         --text-primary: #f4f4f5;
@@ -37,6 +37,25 @@
         --wrong-border: #ef4444;
         --caret-color: #f4f4f5;
     }
+}
+
+:root.theme-dark {
+    /* Dark Theme (Forced) */
+    --bg-color: #09090b;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --nav-bg: #27272a;
+    --nav-text: #a1a1aa;
+    --nav-active-bg: #3f3f46;
+    --nav-active-text: #f4f4f5;
+    --typing-box-bg: #18181b;
+    --typing-box-text: #e4e4e7;
+    --correct-text: #22c55e;
+    --correct-bg: transparent;
+    --wrong-text: #ef4444;
+    --wrong-bg: transparent;
+    --wrong-border: #ef4444;
+    --caret-color: #f4f4f5;
 }
 
 /* ---------- GLOBAL ---------- */

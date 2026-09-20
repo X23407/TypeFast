@@ -5,7 +5,7 @@ class main{
         this.wrongSound = "c2.mp3";
         this.wrongCount = 0;
         this.sound =true;
-        this.wrongChar = [];
+        this.wrongChar = {};
         this.charTyped = 0;
         this.startTime=0;
         this.endTime =0;
@@ -13,6 +13,7 @@ class main{
         this.backspaceCount = 0;
         this.correctCount =0;
         this.random_lines = false;
+        this.tabPressed = false;
         this.mode = localStorage.getItem("mode");
         if (!this.mode) {
             this.mode = "relax";
@@ -45,15 +46,27 @@ class main{
     }
 
     onclick(e){
-        //shift / Control interfere with typing but is neccesary
-        console.log("clickec");
-        if (e.key == "Shift" || e.key == "Control" || e.key == "CapsLock" ){
-            return
-        }else if(e.key =="Tab"){
+        // Ignore special keys that aren't used for typing or navigation
+        if (e.key.length > 1) {
+            const allowed = ["Backspace", "Enter", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+            if (!allowed.includes(e.key)) {
+                return;
+            }
+        }
+
+        if(e.key == "Tab"){
+            this.tabPressed = true;
             e.preventDefault();
             // window.location.reload();
             return;
         }
+
+        if (e.ctrlKey && e.key === "Enter") {
+            e.preventDefault();
+            this.completed("1");
+            return;
+        }
+        this.tabPressed = false;
         e.preventDefault();
         // alert(e.key);
         let dispalyer = document.getElementById("displayer");
@@ -106,10 +119,15 @@ class main{
         }
         else{
             //this key is wrong
-            // this.wrongChar.unshift(this.getLastChar(backtext,"char"));
-            // console.log(fortext[0]);
             console.log("wrong" + e.key+ "  "+fortext[0]+fortext[1]+fortext[2]);
-            this.wrongChar.unshift(fortext[0]);
+            
+            let wrongKey = fortext[0];
+            if (this.wrongChar[wrongKey]) {
+                this.wrongChar[wrongKey]++;
+            } else {
+                this.wrongChar[wrongKey] = 1;
+            }
+
             this.playSound(this.wrongSound);
             // if (this.wrongCount >=1) return;
             this.wrongCount += 1;
@@ -179,14 +197,15 @@ class main{
         return fortext;
     }
     completed(fortext){
-        // fortext="ad0";
-        if (fortext.length==1){
+        if (fortext.length == 1){
             this.endTime = Date.now();
-            document.getElementById("continue-div").style.display = "flex";
-            // document.writeln(`Character typed:  ${this.charTyped} Wrong Typed: ${this.wrongCount} Time taken ${(this.endTime-this.startTime)/1000} <br>
-            // Phrase length: ${this.phraselength}`)
             this.saveStatistic();
-        }else if (fortext == "Enter"){
+            
+            let a = document.createElement("a");
+            a.href = "stats.html";
+            document.body.appendChild(a);
+            a.click();
+        } else if (fortext == "Enter"){
             let a = document.createElement("a");
             a.href = "stats.html";
             document.body.appendChild(a);
@@ -412,12 +431,14 @@ class main{
         let curData = localStorage.getItem("dataPass");
         curData = JSON.parse(curData);
         curData = JSON.parse(curData["wrong_list"]);
+        console.log(curData)
         let text = "";
-        curData.forEach(element => {
+        let keys = Object.keys(curData);
+        keys.forEach(element => {
             let choice = [4,5,6];
             let length = choice[Math.trunc(Math.random()*choice.length)];
             //monotonous
-            for (let i=0;i<length;i++){
+            for (let i=0;i<length && element != " ";i++){
                 text += element;
                 if (i==length-1){
                     text += " ";
@@ -428,10 +449,10 @@ class main{
             }
         });
         //hybrid
-        let hybrid = curData.length;
+        let hybrid = keys.length;
         if (hybrid < 5){
             hybrid = 5;
-        }else if (length > 20){
+        }else if (hybrid > 20){
             hybrid = 20;
         }
         for (let i=0;i<hybrid;i++){
@@ -439,7 +460,10 @@ class main{
             let length = choice[Math.trunc(Math.random()*choice.length)];
             //monotonous
             for (let ii=0;ii<length;ii++){
-                text += curData[Math.trunc(Math.random()*curData.length)]
+                let randomKey = keys[Math.trunc(Math.random()*keys.length)];
+                if (randomKey != " ") {
+                    text += randomKey;
+                }
             }
             text += " ";
         }

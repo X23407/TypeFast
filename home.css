@@ -1,5 +1,5 @@
 /* ---------- THEME VARIABLES ---------- */
-:root {
+:root, :root.theme-light {
     --bg-color: #f4f4f5;
     --text-primary: #18181b;
     --text-secondary: #71717a;
@@ -9,7 +9,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not(.theme-light) {
         --bg-color: #09090b;
         --text-primary: #f4f4f5;
         --text-secondary: #a1a1aa;
@@ -17,6 +17,15 @@
         --accent: #f4f4f5;
         --nav-text: #a1a1aa;
     }
+}
+
+:root.theme-dark {
+    --bg-color: #09090b;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --card-bg: #18181b;
+    --accent: #f4f4f5;
+    --nav-text: #a1a1aa;
 }
 
 /* ---------- GLOBAL ---------- */
