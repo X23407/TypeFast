@@ -4,68 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FastType – Stats</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="stats.css">
     <script src="stats.js"></script>
 </head>
 <body>
 
-    <!-- LOGO -->
-    <header class="logo">FastType</header>
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <span id="punctuation" onclick="s.buttonClick('punctuation')">Punctuation</span>
-        <span id="number" onclick="s.buttonClick('number')">Number</span>
-        <span id="time" onclick="s.buttonClick('time')">Time <span id="clock"></span></span>
-        <span id="relax" onclick="s.buttonClick('relax')">Relax</span>
-        <!-- <span id="custom" onclick="s.buttonClick('custom')">Hands</span> -->
-        <span id="code" onclick="s.buttonClick('code')">Code</span>
-        <span id="arrow" onclick="s.buttonClick('arrow')">Arrow</span>
-        <span id="settings" onclick="s.setting()">Home</span>
-    </nav>
-
-    <!-- MAIN STAT BOX -->
-    <div class="stats-container">
-
-        <div class="stats-left">
-            <p><strong>WPM<sub>net</sub>:</strong> <span id="wpm_net">N/A</span></p>
-            <p><strong>Accuracy:</strong> <span id="accuracy">N/A</span></p>
-            <p><strong>Total Time:</strong> <span id="time_s">N/A</span></p>
+    <div class="container">
+        <!-- LOGO -->
+        <div class="header-top">
+            <header class="logo">FastType</header>
         </div>
 
-        <div class="stats-right">
-            <h2 id="motivater">Something Went wrong. Click on next and then come back!</h2>
-            <div class="stars">
-                <span id="s1" title="Accuracy above 80%">⭐ </span>
-                <span id = "s2" title = "Accuracy above 90%">⭐ </span>
-                <span id ="s3" title="Accuracy above 95%">⭐ </span>
+        <!-- CONTROLS -->
+        <div class="controls-wrapper">
+            <!-- Left Modes -->
+            <nav class="nav-group">
+                <span id="relax" onclick="s.buttonClick('relax')">🍃 Relax</span>
+                <span id="punctuation" onclick="s.buttonClick('punctuation')">@ Punctuation</span>
+                <span id="number" onclick="s.buttonClick('number')"># Number</span>
+                <span id="arrow" onclick="s.buttonClick('arrow')">&larr; Arrow</span>
+                <span id="code" onclick="s.buttonClick('code')">&lt;/&gt; Code</span>
+            </nav>
 
+            <!-- Right Modes (Constraint) - Just for consistency, non-functional in stats or we can just show static UI -->
+            <nav class="nav-group" style="min-width: 440px; justify-content: space-between;">
+                <span style="color: var(--text-secondary); cursor: default; padding-right: 5px;">Time ▼</span>
+                <span class="constraint-time active" style="cursor: default;">15s</span>
+                <span class="constraint-time" style="cursor: default;">30s</span>
+                <span class="constraint-time" style="cursor: default;">60s</span>
+                <span class="constraint-time" style="cursor: default;">120s</span>
+                <span class="constraint-time" style="cursor: default;">Off</span>
+            </nav>
+        </div>
+
+        <div class="typing-header"></div>
+
+        <!-- MAIN STAT BOX -->
+        <div class="typing-box" style="flex-direction: column; align-items: stretch; justify-content: space-between; position: relative; max-width: 800px; margin: 0 auto; width: 100%;">
+            
+            <div style="display: flex; width: 100%; justify-content: space-between; align-items: center; flex-grow: 1;">
+                <div class="stats-left" style="display: flex; flex-direction: column; gap: 20px; font-size: 24px; font-weight: 600; min-width: 200px;">
+                    <div>WPM: <span id="wpm_net" style="color: var(--primary-color);">N/A</span></div>
+                    <div>Accuracy: <span id="accuracy" style="color: var(--primary-color);">N/A</span>%</div>
+                    <div>Time: <span id="time_s" style="color: var(--primary-color);">N/A</span></div>
+                </div>
+
+                <div class="stats-right" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-width: 300px;">
+                    <h3 id="motivater" style="margin: 0 0 15px 0; font-size: 22px; font-weight: 600;">No Worries, Keep going!!!</h3>
+                    <div class="stars">
+                        <span id="s1" title="Accuracy above 80%">⭐</span>
+                        <span id="s2" title="Accuracy above 90%">⭐</span>
+                        <span id="s3" title="Accuracy above 95%">⭐</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- BUTTONS -->
+            <div class="btn-box" style="display: flex; gap: 15px; margin-top: 40px; justify-content: flex-start;">
+                <button class="stats-btn" onclick="s.redo()">Redo</button>
+                <button class="stats-btn" onclick="s.improve()">Improve</button>
+                <button class="stats-btn" id="next" onclick="s.next()">Next</button>
+            </div>
+            
         </div>
-    </div>
 
-    <!-- SUB INFO -->
-     <div class="sub-info">
-        Characters: 
-        <span id="correct" title="correct">???</span> /
-        <span id="wrong" title="incorrect">???</span> /
-        <span id="extra" title="extra">???</span>
-        •  Test Type: <span id="test_type">???</span>
-        • WPM<sub>Total</sub>: <span id="wpm_total">???</span>
-    </div>
-    <!-- <div class="sub-info">
-        Characters: 3/0/97   •   Test Type: Punctuation   •   WPM<sub>Total</sub>: 1
-    </div> -->
+        <!-- SUB INFO -->
+        <div class="shortcuts" style="margin-bottom: 30px;">
+            Characters: <span id="correct">???</span> / <span id="wrong">???</span> / <span id="extra">???</span> • 
+            Test Type: <span id="test_type" style="text-transform: capitalize;">???</span> • 
+            WPMTotal: <span id="wpm_total">???</span>
+            <br><br>
+            Ctrl + shift + P to command palette
+        </div>
 
-    <!-- BUTTONS -->
-    <div class="btn-box">
-        <button>Redo</button>
-        <button onclick="s.improve()">Improve</button>
-        <button id="next" onclick="s.next()">Next</button>
+        <!-- FOOTER -->
+        <footer class="footer">
+            <nav class="footer-nav">
+                <a href="home.html">Home</a>
+                <a href="#">GitHub</a>
+                <a href="help-and-support.html">Privacy</a>
+            </nav>
+        </footer>
     </div>
-    <footer class="footer">© 2025 FastType. All rights reserved.</footer>
 
     <script>
         let s = new stats();
+        // Manually set test_type based on active mode
+        let testTypeEl = document.getElementById("test_type");
+        if (testTypeEl) {
+            let mode = localStorage.getItem("mode") || "relax";
+            let cMode = localStorage.getItem("constraintMode") || "time";
+            if (cMode === "time") {
+                let t = localStorage.getItem("selectedTime") || "30";
+                testTypeEl.innerText = `${mode} • ${t}s`;
+            } else {
+                let w = localStorage.getItem("selectedWordMode") || "short";
+                testTypeEl.innerText = `${mode} • ${w} words`;
+            }
+        }
         s.updateData();
     </script>
 

@@ -13,16 +13,22 @@ class main{
         this.backspaceCount = 0;
         this.correctCount =0;
         this.random_lines = false;
-        this.mode=localStorage.getItem("mode");//"default";
-        if (!this.mode){
-            this.mode ="relax";
-            // alert("Hello There!, Welcome to our app");
-            /*handling the case when the user is opening for the first time or when the data is not found in browser
-            in order to prevent error*/
+        this.mode = localStorage.getItem("mode");
+        if (!this.mode) {
+            this.mode = "relax";
         }
+        
+        let storedTime = localStorage.getItem("selectedTime");
+        this.selectedTime = storedTime !== null ? parseInt(storedTime) : 30;
+        
+        this.constraintMode = localStorage.getItem("constraintMode") || "time";
+        this.selectedWordMode = localStorage.getItem("selectedWordMode") || "short";
+        
+        this.timeBtn = (this.constraintMode === "time" && this.selectedTime > 0);
+        
         this.dataHandler();
-        this.timeBtn = false;
         this.buttonClick(this.mode);
+        this.initConstraintUI();
         this.specialKey = {
                 "ArrowLeft" : "←",
                 "ArrowRight" : "→",
@@ -56,10 +62,14 @@ class main{
         let str = dispalyer.innerHTML;
         //checking if it is intiall call
         if (this.charTyped == 0){
-            this.phraselength = str.length-spliter.length;
+            this.phraselength = this.fullText ? this.fullText.length : (str.length-spliter.length);
             this.startTime = Date.now();
             if (this.timeBtn){
                 this.timeupdater();
+            }
+            let counter = document.getElementById("word-counter");
+            if (counter && !this.timeBtn) {
+                counter.style.display = "block";
             }
         }
         str = str.split(spliter);
@@ -78,6 +88,7 @@ class main{
             this.backspaceCount ++;
             if (backtext == "") return;
             backtext = this.getLastChar(backtext,spliter);
+            if (this.userIndex > 0) this.userIndex--;
         }else if (fortext == ""){
             if (e.key == "Enter"){
                 this.completed(e.key);
@@ -91,6 +102,7 @@ class main{
             // this.wrongCount = 0;
             this.playSound(this.correctSound);
             fortext[0] = color+fortext[0]+ "</span>" + spliter;
+            this.userIndex++;
         }
         else{
             //this key is wrong
@@ -108,12 +120,38 @@ class main{
                 // fortext[0] = color+fortext[0]+ "</span>" + spliter;
                 fortext[0] = color+fortext[0]+ "</span>" + spliter;
             }
+            this.userIndex++;
         }
         //incrementing count and marking the begining
         this.charTyped ++;
         this.completed(fortext);
+        
+        // Feed more text if running low
+        if (fortext.length < 150 && this.fullText && this.currentTextIndex < this.fullText.length) {
+            let chunk = this.fullText.substring(this.currentTextIndex, this.currentTextIndex + 100);
+            fortext = fortext.concat(chunk.split(""));
+            this.currentTextIndex += 100;
+        }
+
         dispalyer.innerHTML = backtext + fortext.join("");
-        // console.log(str+"\n" +temp+ "  " + endIndex + "\n" + fortext.join(""))
+        
+        let typedText = this.fullText.substring(0, this.userIndex);
+        let typedWords = typedText.split(/\s+/).filter(w => w.length > 0).length;
+        let counter = document.getElementById("word-counter");
+        if (counter) counter.innerText = `${typedWords} / ${this.totalWords}`;
+        
+        // Multi-line smooth scroll logic
+        let caret = dispalyer.querySelector(".caret");
+        if (caret) {
+            let caretTop = caret.offsetTop;
+            let lineHeight = 48; // We set line-height to 48px in CSS
+            if (caretTop >= lineHeight * 2) {
+                // If on the 3rd line or below, scroll it up so caret stays on the 2nd line
+                dispalyer.style.top = `-${caretTop - lineHeight}px`;
+            } else {
+                dispalyer.style.top = `0px`;
+            }
+        }
     }
 
     specialCase(fortext){
@@ -210,32 +248,44 @@ class main{
         }
     }
 
+    getGenerationCount() {
+        if (this.constraintMode === "time") {
+            return this.selectedTime > 0 ? 100 : 2;
+        } else {
+            if (this.selectedWordMode === "medium") return 4;
+            if (this.selectedWordMode === "large") return 8;
+            if (this.selectedWordMode === "xlarge") return 16;
+            return 2; // short
+        }
+    }
+
     modeSelecter(){
         let text = "";
         let redirect = localStorage.getItem("redirect");
-        // this.mode = "right";
-        //localStorage.setItem("redirect","improve");
         console.log(redirect);
 
         /*-----MODE THAT AFFECT TEXT GENERATION--------*/
         if (redirect == 'improve'){
-            text = "This is for improvement."
             text = this.improve();
-            document.getElementById("displayer").innerHTML =  `<span class="caret"></span>`+ text;
-            return;
-            // alert("improvement");
-            } else if(this.mode == "right"){
+        } else if(this.mode == "right"){
                 while(text.length<200){
-                    // text += this.rigth_words[Math.trunc(Math.random()*this.rigth_words.length)] + " "
                     text += this.left_hand_words[Math.trunc(Math.random()*this.left_hand_words.length)] + " "
                 }
                 text += this.left_hand_words[Math.trunc(Math.random()*this.left_hand_words.length)]
             }
             else if (this.mode == "code"){
-                text = `${this.ultimate_lines[Math.round(Math.random()* this.ultimate_lines.length)]} ${this.ultimate_lines[Math.round(Math.random()* this.ultimate_lines.length)]}`// ${this.ultimate_lines[Math.round(Math.random()* this.ultimate_lines.length)]}`;
+                let count = this.getGenerationCount();
+                for(let i=0; i<count; i++){
+                    let line = this.ultimate_lines[Math.trunc(Math.random()* this.ultimate_lines.length)];
+                    if (line) text += line + " ";
+                }
             }
             else{
-                text = `${this.random_lines[Math.round(Math.random()* this.random_lines.length)]} ${this.random_lines[Math.round(Math.random()* this.random_lines.length)]}` //${this.random_lines[Math.round(Math.random()* this.random_lines.length)]}`;
+                let count = this.getGenerationCount();
+                for(let i=0; i<count; i++){
+                    let line = this.random_lines[Math.trunc(Math.random()* this.random_lines.length)];
+                    if (line) text += line + " ";
+                }
             }
 
         /*-----MODE THAT AFFECT/ADD EXTRA CHAR TO GENERATED TEXT--------*/
@@ -269,19 +319,34 @@ class main{
             }
             text = text.join(" ");
         }
-        // text = `'unordered_map <int,string> um = {{1,\"A\"}};',`;
-        // text = "← → ↑ ↓"
-        document.getElementById("displayer").innerHTML =  `<span class="caret"></span>`+ text;
+        this.fullText = text.trim();
+        this.currentTextIndex = Math.min(250, this.fullText.length);
+        this.totalWords = this.fullText.split(/\s+/).filter(w => w.length > 0).length;
+        this.userIndex = 0;
+        
+        let counter = document.getElementById("word-counter");
+        if (counter) {
+            counter.innerText = `0 / ${this.totalWords}`;
+        }
+        
+        let initialChunk = this.fullText.substring(0, this.currentTextIndex);
+        let displayer = document.getElementById("displayer");
+        displayer.innerHTML = `<span class="caret"></span>` + initialChunk;
+        displayer.style.top = "0px"; // reset scrolling
     }
 
-    timeupdater(duration = 15000*2) {
+    timeupdater() {
+        if (this.selectedTime <= 0) return;
+        const duration = this.selectedTime * 1000;
         const interval = 1000; // run every 1 second
         let elapsed = 0;
 
         const thread = setInterval(() => {
-            // console.log(`Thread running... ${elapsed / 1000}s`);
-            //displaying
-            document.getElementById("clock").innerHTML = `${30 - (elapsed / 1000)}s`
+            let remaining = this.selectedTime - (elapsed / 1000) - 1;
+            let clock = document.getElementById("clock");
+            if (clock && remaining >= 0) {
+                clock.innerHTML = `${remaining}s`;
+            }
             elapsed += interval;
         }, interval);
 
@@ -289,7 +354,6 @@ class main{
             clearInterval(thread);
             this.completed("1");
             this.completed("Enter");
-            // alert("Ender");
         }, duration);
     }
 
@@ -325,25 +389,14 @@ class main{
         let buttons = [
             "number",
             "punctuation",
-            "time",
             "relax",
-            // "custom",
             "code",
-            "arrow",
+            "arrow"
         ]
         for (let i=0;i<buttons.length;i++){
-            // if (buttons[i] == "time") this.timeBtn();
             if (mode == buttons[i]){
                 activeBtn(buttons[i]);
                 this.modeSelecter();
-                if (mode == "time"){
-                    this.timeFunction();
-                }else if(mode=="custom"){
-                    this.customFun();
-                }
-                // else if(mode=="boost"){
-                //     this.boster_swapper()
-                // }
             }
             else {
                 resetBtn(buttons[i]);
@@ -394,17 +447,64 @@ class main{
         return text;
     }
 
-    timeFunction(){
-        if (!this.timeBtn){
-            document.getElementById("clock").style.display = "inline-flex" ;
-            document.getElementById("clock").innerText = "30s";
-            this.timeBtn = true;
-        }else{
-            document.getElementById("clock").style.display = "none" ;
-            document.getElementById("clock").innerText = "";
-            this.timeBtn = false;
+    initConstraintUI() {
+        let toggle = document.getElementById("constraint-toggle");
+        let timeEls = document.querySelectorAll(".constraint-time");
+        let wordEls = document.querySelectorAll(".constraint-word");
+
+        if (this.constraintMode === "time") {
+            if (toggle) toggle.innerText = "Time ▼";
+            timeEls.forEach(el => el.style.display = "");
+            wordEls.forEach(el => el.style.display = "none");
             
+            let times = [15, 30, 60, 120, 0];
+            times.forEach(t => {
+                let el = document.getElementById(`time-${t}`);
+                if (el) {
+                    if (t === this.selectedTime) el.classList.add("active");
+                    else el.classList.remove("active");
+                }
+            });
+        } else {
+            if (toggle) toggle.innerText = "Word ▼";
+            timeEls.forEach(el => el.style.display = "none");
+            wordEls.forEach(el => el.style.display = "");
+            
+            let words = ["short", "medium", "large", "xlarge"];
+            words.forEach(w => {
+                let el = document.getElementById(`word-${w}`);
+                if (el) {
+                    if (w === this.selectedWordMode) el.classList.add("active");
+                    else el.classList.remove("active");
+                }
+            });
         }
+        
+        let clock = document.getElementById("clock");
+        if (clock) {
+            if (this.constraintMode === "time" && this.selectedTime > 0) {
+                clock.style.display = "block";
+                clock.innerText = this.selectedTime + "s";
+            } else {
+                clock.style.display = "none";
+            }
+        }
+    }
+
+    toggleConstraintMode() {
+        this.constraintMode = this.constraintMode === "time" ? "word" : "time";
+        localStorage.setItem("constraintMode", this.constraintMode);
+        window.location.reload();
+    }
+
+    setTime(time) {
+        localStorage.setItem("selectedTime", time);
+        window.location.reload();
+    }
+
+    setWordMode(mode) {
+        localStorage.setItem("selectedWordMode", mode);
+        window.location.reload();
     }
 
     dataHandler(){

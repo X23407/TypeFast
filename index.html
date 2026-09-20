@@ -9,41 +9,77 @@
 </head>
 <body>
 
-    <!-- LOGO -->
-    <header class="logo">
-        FastType
-    </header>
+    <div class="container">
+        <!-- LOGO -->
+        <div class="header-top">
+            <header class="logo">FastType</header>
+        </div>
 
-    <!-- NAVBAR -->
-    <nav class="navbar">
-        <span  id ="punctuation" onclick="m.buttonClick('punctuation')" >Punctuation</span>
-        <span  id = "number" onclick="m.buttonClick('number')">Number</span>
-        <span  id="time" onclick="m.buttonClick('time')">Time <span id="clock"></span></span>
-        <span  id="relax" onclick="m.buttonClick('relax')">Relax</span>
-        <!-- <span  id="custom" onclick="m.hand_booster()">L-Boost: 100</span> -->
-        <!-- <span  id="custom" onclick="m.buttonClick('custom')">L-Boost: 70</span> -->
-        <span  id="code" onclick="m.buttonClick('code')">Code</span>
-        <span  id="arrow" onclick="m.buttonClick('arrow')">Arrow</span>
-        <span  id = "settings" onclick="m.setting()">Home</span>
-    </nav>
+        <!-- CONTROLS -->
+        <div class="controls-wrapper">
+            <!-- Left Modes -->
+            <nav class="nav-group">
+                <span id="relax" onclick="m.buttonClick('relax')">🍃 Relax</span>
+                <span id="punctuation" onclick="m.buttonClick('punctuation')">@ Punctuation</span>
+                <span id="number" onclick="m.buttonClick('number')"># Number</span>
+                <span id="arrow" onclick="m.buttonClick('arrow')">&larr; Arrow</span>
+                <span id="code" onclick="m.buttonClick('code')">&lt;/&gt; Code</span>
+            </nav>
 
-    <!-- MAIN TEXT BOX -->
-    <div class="typing-box">
-        <p id ="displayer">
-            A pigeon cooed from the rooftop. <span class="caret"></span>
-            The old gate screeched open.  
-            A paperclip snapped in half.
-        </p>
+            <!-- Right Modes (Constraint) -->
+            <nav class="nav-group" style="min-width: 440px; justify-content: space-between;">
+                <span id="constraint-toggle" style="color: var(--text-secondary); cursor: pointer; padding-right: 5px;" onclick="m.toggleConstraintMode()">Time ▼</span>
+                
+                <span id="time-15" class="constraint-time" onclick="m.setTime(15)">15s</span>
+                <span id="time-30" class="constraint-time" onclick="m.setTime(30)">30s</span>
+                <span id="time-60" class="constraint-time" onclick="m.setTime(60)">60s</span>
+                <span id="time-120" class="constraint-time" onclick="m.setTime(120)">120s</span>
+                <span id="time-0" class="constraint-time" onclick="m.setTime(0)">Off</span>
+
+                <span id="word-short" class="constraint-word" style="display:none;" onclick="m.setWordMode('short')">Short</span>
+                <span id="word-medium" class="constraint-word" style="display:none;" onclick="m.setWordMode('medium')">Medium</span>
+                <span id="word-large" class="constraint-word" style="display:none;" onclick="m.setWordMode('large')">Large</span>
+                <span id="word-xlarge" class="constraint-word" style="display:none;" onclick="m.setWordMode('xlarge')">X-Large</span>
+            </nav>
+        </div>
+
+        <div class="typing-header">
+            <div id="clock">30s</div>
+            <div id="word-counter" style="display: none;">0 / 0</div>
+        </div>
+
+        <!-- MAIN TEXT BOX -->
+        <div class="typing-box">
+            <div id="displayer-container">
+                <p id="displayer">
+                    A pigeon cooed from the rooftop. <span class="caret"></span>
+                    The old gate screeched open.  
+                    A paperclip snapped in half.
+                </p>
+            </div>
+        </div>
+
+        <!-- SHORTCUTS -->
+        <div class="shortcuts">
+            Tab + Enter to restart<br>
+            Ctrl + shift + P to command palette
+        </div>
+
+        <div id="continue-div" style="display:none;text-align: center;">
+            <center>
+                <span id="settings" class="active">Press Enter to Continue....</span>
+            </center>
+        </div>
+        
+        <!-- FOOTER -->
+        <footer class="footer">
+            <nav class="footer-nav">
+                <a href="home.html">Home</a>
+                <a href="#">GitHub</a>
+                <a href="help-and-support.html">Privacy</a>
+            </nav>
+        </footer>
     </div>
-
-    <div id = "continue-div" style="display:none;text-align: center;">
-        <center>
-            <span  id = "settings" class = "active" >Press Enter to Continue....</span>
-        </center>
-    </div>
-    
-    <footer class="footer">© 2025 FastType. All rights reserved.</footer>
-
 
     <script>
         m = new main();
