@@ -1,0 +1,60 @@
+/* ---------- COMMAND PALETTE ---------- */
+#command-palette-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 15vh;
+}
+
+#command-palette {
+    width: 90%;
+    max-width: 600px;
+    background-color: var(--typing-box-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#command-palette-input {
+    width: 100%;
+    padding: 20px;
+    font-size: 18px;
+    border: none;
+    background-color: transparent;
+    color: var(--text-primary);
+    outline: none;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--nav-bg);
+}
+
+#command-palette-results {
+    max-height: 300px;
+    overflow-y: auto;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#command-palette-results li {
+    padding: 15px 20px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 16px;
+    transition: background-color 0.1s;
+}
+
+#command-palette-results li.active,
+#command-palette-results li:hover {
+    background-color: var(--nav-active-bg);
+    color: var(--nav-active-text);
+}
+

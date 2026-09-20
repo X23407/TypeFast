@@ -1,7 +1,14 @@
 class stats{
     constructor(){
         this.curData = false;
+        
+        this.constraintMode = localStorage.getItem("constraintMode") || "time";
+        this.selectedTime = parseInt(localStorage.getItem("selectedTime")) || 30;
+        if (this.selectedTime !== 0 && !this.selectedTime) this.selectedTime = 0; // fallback logic
+        this.selectedWordMode = localStorage.getItem("selectedWordMode") || "short";
+
         this.buttonClick();
+        this.initConstraintUI();
         // this.wrong_list = JSON.parse(localStorage.getItem("wrong_list"))
         // document.getElementById("next").addEventListener("")/
         document.body.addEventListener("keyup", (e)=>{
@@ -34,9 +41,11 @@ class stats{
         window.location.href = "index.html";
     }
     improve(){
-        if (this.wrong_list){
+        if (this.wrong_list && Object.keys(this.wrong_list).length > 0){
             // alert(this.wrong_list);
             localStorage.setItem("redirect","improve");
+            localStorage.setItem("constraintMode", "time");
+            localStorage.setItem("selectedTime", "0");
             window.location.href = "index.html";
         }else{
             this.redo();
@@ -60,6 +69,59 @@ class stats{
             window.location.href = "index.html";
         }
         //hello
+    }
+
+    setTime(time) {
+        localStorage.setItem("constraintMode", "time");
+        localStorage.setItem("selectedTime", time);
+        window.location.href = "index.html";
+    }
+
+    setWordMode(mode) {
+        localStorage.setItem("constraintMode", "word");
+        localStorage.setItem("selectedWordMode", mode);
+        window.location.href = "index.html";
+    }
+
+    toggleConstraintMode() {
+        let current = localStorage.getItem("constraintMode") || "time";
+        let next = current === "time" ? "word" : "time";
+        localStorage.setItem("constraintMode", next);
+        window.location.href = "index.html";
+    }
+
+    initConstraintUI() {
+        let toggle = document.getElementById("constraint-toggle");
+        let timeEls = document.querySelectorAll(".constraint-time");
+        let wordEls = document.querySelectorAll(".constraint-word");
+
+        if (this.constraintMode === "time") {
+            if (toggle) toggle.innerText = "Time ▼";
+            timeEls.forEach(el => el.style.display = "");
+            wordEls.forEach(el => el.style.display = "none");
+            
+            let times = [15, 30, 60, 120, 0];
+            times.forEach(t => {
+                let el = document.getElementById(`time-${t}`);
+                if (el) {
+                    if (t === this.selectedTime) el.classList.add("active");
+                    else el.classList.remove("active");
+                }
+            });
+        } else {
+            if (toggle) toggle.innerText = "Words ▼";
+            timeEls.forEach(el => el.style.display = "none");
+            wordEls.forEach(el => el.style.display = "");
+            
+            let words = ["short", "medium", "large", "xlarge"];
+            words.forEach(w => {
+                let el = document.getElementById(`word-${w}`);
+                if (el) {
+                    if (w === this.selectedWordMode) el.classList.add("active");
+                    else el.classList.remove("active");
+                }
+            });
+        }
     }
 
     updateData(){
