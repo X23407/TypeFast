@@ -14,6 +14,7 @@ class main{
         this.correctCount =0;
         this.random_lines = false;
         this.tabPressed = false;
+        this.afkThreshold = 3000;
         this.mode = localStorage.getItem("mode");
         if (!this.mode) {
             this.mode = "relax";
@@ -39,6 +40,7 @@ class main{
         document.body.addEventListener("keydown",(e)=>{
             this.onclick(e);
         })
+        document.addEventListener("visibilitychange", () => this.timeupdater());
         
     }
     setting(){
@@ -66,62 +68,46 @@ class main{
             this.completed("1");
             return;
         }
+        if (this.testCompleted || ((e.ctrlKey || e.metaKey || e.altKey) && !e.getModifierState("AltGraph"))) return;
         this.tabPressed = false;
         e.preventDefault();
-        // alert(e.key);
-        let dispalyer = document.getElementById("displayer");
-        let color = `<span class="correct">`
-        let spliter = `<span class="caret"></span>`;
-        let str = dispalyer.innerHTML;
-        //checking if it is intiall call
-        if (this.charTyped == 0){
-            this.phraselength = this.fullText ? this.fullText.length : (str.length-spliter.length);
-            this.startTime = Date.now();
-            if (this.timeBtn){
-                this.timeupdater();
-            }
+        // A no-op Backspace keeps its existing counters but does not start/resume a test.
+        if (e.key == "Backspace" && this.userIndex == 0) {
+            this.correctCount++;
+            this.backspaceCount++;
+            return;
+        }
+        if (!this.testStarted){
+            this.phraselength = this.fullText.length;
             let counter = document.getElementById("word-counter");
             if (counter && !this.timeBtn) {
                 counter.style.display = "block";
             }
         }
-        str = str.split(spliter);
-        let fortext = str[1];
-        let backtext = str[0];
-        console.log(backtext);
-        fortext = fortext.split("");
-        fortext = this.specialCase(fortext);
-        console.log(fortext);
-        // console.log(e.key)
-        // if (this.specialKey.hasOwnProperty(e.key)){
-        //     alert(this.specialKey[e.key] + " "+e.key);
-        // }
+        // Resume before processing this same key, so no input is swallowed.
+        if (!this.recordTypingActivity()) return;
+        let expected = this.fullText[this.userIndex];
         if (e.key == "Backspace"){
             this.correctCount ++;
             this.backspaceCount ++;
-            if (backtext == "") return;
-            backtext = this.getLastChar(backtext,spliter);
-            if (this.userIndex > 0) this.userIndex--;
-        }else if (fortext == ""){
+            if (this.userIndex == 0) return;
+            this.userIndex--;
+            this.characterElements[this.userIndex].classList.remove("correct", "wrong");
+        }else if (this.userIndex >= this.fullText.length){
             if (e.key == "Enter"){
                 this.completed(e.key);
             }
             // alert("End has been reached");
             return
         }
-        else if (e.key == fortext[0] || (this.specialKey.hasOwnProperty(e.key)) && fortext[0] == this.specialKey[e.key]){
+        else if (e.key == expected || (this.specialKey.hasOwnProperty(e.key)) && expected == this.specialKey[e.key]){
             this.correctCount ++;
-            //the key is correct
-            // this.wrongCount = 0;
             this.playSound(this.correctSound);
-            fortext[0] = color+fortext[0]+ "</span>" + spliter;
+            this.characterElements[this.userIndex].classList.add("correct");
             this.userIndex++;
         }
         else{
-            //this key is wrong
-            console.log("wrong" + e.key+ "  "+fortext[0]+fortext[1]+fortext[2]);
-            
-            let wrongKey = fortext[0];
+            let wrongKey = expected;
             if (this.wrongChar[wrongKey]) {
                 this.wrongChar[wrongKey]++;
             } else {
@@ -129,47 +115,109 @@ class main{
             }
 
             this.playSound(this.wrongSound);
-            // if (this.wrongCount >=1) return;
             this.wrongCount += 1;
-            color = `<span class="wrong">`
-            if (fortext[0] == "43554"){
-                fortext[0] = color+"␣"+ "</span>" + spliter;
-            }else{
-                // fortext[0] = color+fortext[0]+ "</span>" + spliter;
-                fortext[0] = color+fortext[0]+ "</span>" + spliter;
-            }
+            this.characterElements[this.userIndex].classList.add("wrong");
             this.userIndex++;
         }
         //incrementing count and marking the begining
         this.charTyped ++;
-        this.completed(fortext);
+        if (this.userIndex == this.fullText.length) {
+            this.completed("1");
+        }
         
         // Feed more text if running low
-        if (fortext.length < 150 && this.fullText && this.currentTextIndex < this.fullText.length) {
-            let chunk = this.fullText.substring(this.currentTextIndex, this.currentTextIndex + 100);
-            fortext = fortext.concat(chunk.split(""));
-            this.currentTextIndex += 100;
+        if (this.currentTextIndex - this.userIndex < 150 && this.currentTextIndex < this.fullText.length) {
+            this.appendTypingText(this.currentTextIndex + 100);
         }
-
-        dispalyer.innerHTML = backtext + fortext.join("");
         
         let typedText = this.fullText.substring(0, this.userIndex);
         let typedWords = typedText.split(/\s+/).filter(w => w.length > 0).length;
         let counter = document.getElementById("word-counter");
         if (counter) counter.innerText = `${typedWords} / ${this.totalWords}`;
         
-        // Multi-line smooth scroll logic
-        let caret = dispalyer.querySelector(".caret");
-        if (caret) {
-            let caretTop = caret.offsetTop;
-            let lineHeight = 48; // We set line-height to 48px in CSS
-            if (caretTop >= lineHeight * 2) {
-                // If on the 3rd line or below, scroll it up so caret stays on the 2nd line
-                dispalyer.style.top = `-${caretTop - lineHeight}px`;
+        this.scheduleCaretPosition();
+    }
+
+    renderTypingText() {
+        this.displayer = document.getElementById("displayer");
+        this.textLayer = this.displayer.parentElement;
+        this.caret = this.textLayer.querySelector(".caret");
+        this.characterElements = [];
+        this.currentTextIndex = 0;
+        this.displayer.replaceChildren();
+        this.appendTypingText(250);
+        this.scheduleCaretPosition();
+
+        if (!this.typingResizeObserver) {
+            this.typingResizeObserver = new ResizeObserver(() => this.scheduleCaretPosition());
+            this.typingResizeObserver.observe(document.getElementById("displayer-container"));
+            this.typingResizeObserver.observe(this.displayer);
+            window.addEventListener("resize", () => this.scheduleCaretPosition());
+            document.fonts.ready.then(() => this.scheduleCaretPosition());
+            document.fonts.addEventListener("loadingdone", () => this.scheduleCaretPosition());
+        }
+    }
+
+    appendTypingText(endIndex) {
+        endIndex = Math.min(endIndex, this.fullText.length);
+        // Finish the word so later chunks never change an existing word's wrapping.
+        while (endIndex < this.fullText.length && !/\s/.test(this.fullText[endIndex])) {
+            endIndex++;
+        }
+
+        const fragment = document.createDocumentFragment();
+        let word = null;
+        for (let index = this.currentTextIndex; index < endIndex; index++) {
+            const character = this.fullText[index];
+            const element = document.createElement("span");
+            element.className = "char";
+            element.textContent = character;
+            this.characterElements.push(element);
+            if (/\s/.test(character)) {
+                fragment.appendChild(element);
+                word = null;
             } else {
-                dispalyer.style.top = `0px`;
+                if (!word) {
+                    word = document.createElement("span");
+                    word.className = "word";
+                    fragment.appendChild(word);
+                }
+                word.appendChild(element);
             }
         }
+        this.displayer.appendChild(fragment);
+        this.currentTextIndex = endIndex;
+    }
+
+    scheduleCaretPosition() {
+        if (this.caretFrame) return;
+        this.caretFrame = requestAnimationFrame(() => {
+            this.caretFrame = null;
+            this.updateCaretPosition();
+        });
+    }
+
+    updateCaretPosition() {
+        const style = getComputedStyle(this.displayer);
+        const lineHeight = parseFloat(style.lineHeight);
+        const fontSize = parseFloat(style.fontSize);
+        const character = this.characterElements[this.userIndex] || this.characterElements[this.userIndex - 1];
+        let x = 0;
+        let line = 0;
+        if (character) {
+            const rect = character.getBoundingClientRect();
+            const layerRect = this.textLayer.getBoundingClientRect();
+            const firstRect = this.characterElements[0].getBoundingClientRect();
+            x = (this.userIndex < this.characterElements.length ? rect.left : rect.right) - layerRect.left;
+            line = Math.round((rect.top - firstRect.top) / lineHeight);
+        }
+
+        // Text and caret share the scroll transform so they stay together during animation.
+        const scroll = Math.max(0, line - 1) * lineHeight;
+        const y = line * lineHeight + (lineHeight - fontSize) / 2;
+        this.textLayer.style.transform = `translateY(-${scroll}px)`;
+        this.caret.style.height = `${fontSize}px`;
+        this.caret.style.transform = `translate3d(${x}px, ${y}px, 0)`;
     }
 
     specialCase(fortext){
@@ -196,9 +244,19 @@ class main{
         // console.log(fortext);
         return fortext;
     }
-    completed(fortext){
+    completed(fortext, completedAt = Date.now()){
+        if (this.testCompleted) return;
         if (fortext.length == 1){
-            this.endTime = Date.now();
+            this.updateTestTiming(completedAt);
+            if (this.isPaused) {
+                this.afkTime += Math.max(0, completedAt - this.pauseStartedAt);
+            }
+            this.testCompleted = true;
+            clearTimeout(this.afkTimer);
+            clearTimeout(this.testTimer);
+            this.pauseStartedAt = null;
+            this.setPaused(false);
+            this.endTime = completedAt;
             this.saveStatistic();
             
             let a = document.createElement("a");
@@ -238,7 +296,10 @@ class main{
     saveStatistic(){
         let correct = this.correctCount;
         let extra = this.charTyped - this.phraselength;
-        let totat_time= (this.endTime-this.startTime)/1000; //insec
+        this.totalElapsedTime = Math.max(0, this.endTime - this.startTime);
+        this.activeTypingTime = Math.max(0, this.totalElapsedTime - this.afkTime);
+        // WPM includes pauses, so taking breaks cannot inflate a stored score.
+        let totat_time= this.totalElapsedTime/1000; //insec
         let wpm_net = Math.round((correct/totat_time)*(60/5));
         let wpm = Math.round((this.charTyped/totat_time)*(60/5));
         let accuracy = Math.round((correct/this.charTyped)*100);
@@ -248,6 +309,10 @@ class main{
             "wrong" : this.wrongCount,
             "extra" : extra,
             "time" : Math.round(totat_time),
+            // Detailed durations are stored in milliseconds; "time" stays in seconds.
+            "activeTypingTime": this.activeTypingTime,
+            "totalElapsedTime": this.totalElapsedTime,
+            "afkTime": this.afkTime,
             "wpm_net" : wpm_net,
             "wpm" : wpm,
             "accuracy":accuracy,
@@ -279,6 +344,9 @@ class main{
     }
 
     modeSelecter(){
+        this.resetTestTiming();
+        this.charTyped = this.correctCount = this.wrongCount = this.backspaceCount = 0;
+        this.wrongChar = {};
         let text = "";
         let redirect = localStorage.getItem("redirect");
         console.log(redirect);
@@ -339,7 +407,6 @@ class main{
             text = text.join(" ");
         }
         this.fullText = text.trim();
-        this.currentTextIndex = Math.min(250, this.fullText.length);
         this.totalWords = this.fullText.split(/\s+/).filter(w => w.length > 0).length;
         this.userIndex = 0;
         
@@ -348,32 +415,81 @@ class main{
             counter.innerText = `0 / ${this.totalWords}`;
         }
         
-        let initialChunk = this.fullText.substring(0, this.currentTextIndex);
-        let displayer = document.getElementById("displayer");
-        displayer.innerHTML = `<span class="caret"></span>` + initialChunk;
-        displayer.style.top = "0px"; // reset scrolling
+        this.renderTypingText();
     }
 
-    timeupdater() {
-        if (this.selectedTime <= 0) return;
-        const duration = this.selectedTime * 1000;
-        const interval = 1000; // run every 1 second
-        let elapsed = 0;
+    resetTestTiming() {
+        clearTimeout(this.afkTimer);
+        clearTimeout(this.testTimer);
+        this.testStarted = false;
+        this.testCompleted = false;
+        this.startTime = this.endTime = this.lastActivityTime = 0;
+        this.activeTypingTime = this.totalElapsedTime = this.afkTime = 0;
+        this.pauseStartedAt = null;
+        this.setPaused(false);
+        const clock = document.getElementById("clock");
+        if (clock) clock.textContent = `${this.selectedTime}s`;
+    }
 
-        const thread = setInterval(() => {
-            let remaining = this.selectedTime - (elapsed / 1000) - 1;
-            let clock = document.getElementById("clock");
-            if (clock && remaining >= 0) {
-                clock.innerHTML = `${remaining}s`;
+    setPaused(paused) {
+        this.isPaused = paused;
+        document.getElementById("displayer-container").classList.toggle("is-paused", paused);
+        document.getElementById("afk-status").hidden = !paused;
+    }
+
+    updateTestTiming(now = Date.now()) {
+        if (!this.testStarted || this.testCompleted) return;
+        const pauseAt = this.lastActivityTime + this.afkThreshold;
+        if (!this.isPaused && now >= pauseAt) {
+            // Use the deadline, even when background-tab throttling delays this callback.
+            this.pauseStartedAt = pauseAt;
+            this.setPaused(true);
+            clearTimeout(this.afkTimer);
+            clearTimeout(this.testTimer);
+        }
+        const currentPause = this.isPaused ? Math.max(0, now - this.pauseStartedAt) : 0;
+        this.totalElapsedTime = Math.max(0, now - this.startTime);
+        this.activeTypingTime = Math.max(0, this.totalElapsedTime - this.afkTime - currentPause);
+    }
+
+    recordTypingActivity() {
+        const now = Date.now();
+        if (!this.testStarted) {
+            this.testStarted = true;
+            this.startTime = this.lastActivityTime = now;
+        } else {
+            // Detect overdue AFK/expiry before treating an arriving key as activity.
+            this.timeupdater(now);
+            if (this.testCompleted) return false;
+            if (this.isPaused) {
+                this.afkTime += Math.max(0, now - this.pauseStartedAt);
+                this.pauseStartedAt = null;
+                this.setPaused(false);
             }
-            elapsed += interval;
-        }, interval);
+            this.lastActivityTime = now;
+        }
+        clearTimeout(this.afkTimer);
+        this.afkTimer = setTimeout(() => this.timeupdater(), this.afkThreshold);
+        this.timeupdater(now);
+        return true;
+    }
 
-        setTimeout(() => {
-            clearInterval(thread);
-            this.completed("1");
-            this.completed("Enter");
-        }, duration);
+    timeupdater(now = Date.now()) {
+        clearTimeout(this.testTimer);
+        if (!this.testStarted || this.testCompleted) return;
+        this.updateTestTiming(now);
+        if (!this.timeBtn || this.selectedTime <= 0) return;
+
+        const remaining = Math.max(0, this.selectedTime * 1000 - this.activeTypingTime);
+        const clock = document.getElementById("clock");
+        const label = `${Math.ceil(remaining / 1000)}s`;
+        if (clock && clock.textContent !== label) clock.textContent = label;
+        if (remaining === 0) {
+            this.completed("1", this.startTime + this.afkTime + this.selectedTime * 1000);
+        } else if (!this.isPaused) {
+            // Keep countdown boundaries accurate across repeated pauses and resumes.
+            this.testTimer = setTimeout(() => this.timeupdater(), remaining % 1000 || 1000);
+        }
     }
 
     reset(id,mode){

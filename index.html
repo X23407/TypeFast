@@ -47,16 +47,16 @@
         <div class="typing-header">
             <div id="clock">30s</div>
             <div id="word-counter" style="display: none;">0 / 0</div>
+            <span id="afk-status" role="status" aria-live="polite" hidden>paused</span>
         </div>
 
         <!-- MAIN TEXT BOX -->
         <div class="typing-box">
             <div id="displayer-container">
-                <p id="displayer">
-                    A pigeon cooed from the rooftop. <span class="caret"></span>
-                    The old gate screeched open.  
-                    A paperclip snapped in half.
-                </p>
+                <div class="typing-layer">
+                    <p id="displayer"></p>
+                    <span class="caret" aria-hidden="true"></span>
+                </div>
             </div>
         </div>
 

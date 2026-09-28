@@ -145,6 +145,13 @@ body {
     min-height: 28px;
 }
 
+#afk-status {
+    margin-left: auto;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .typing-box {
     background-color: var(--typing-box-bg);
     border-radius: 20px;
@@ -171,10 +178,18 @@ body {
     margin: 0;
     font-weight: 600;
     text-align: left;
-    word-break: break-word;
+    word-break: normal;
+}
+
+.typing-layer {
     position: relative;
-    top: 0;
-    transition: top 0.2s ease-out;
+    transform: translateY(0);
+    transition: transform 0.2s ease-out;
+}
+
+#displayer .word {
+    display: inline-block;
+    white-space: nowrap;
 }
 
 /* ---------- CARET ---------- */
@@ -184,16 +199,22 @@ body {
 }
 
 .caret {
-    display: inline-block;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 3px;
-    height: 1em;
+    height: 32px;
     background-color: var(--caret-color);
-    margin-left: 2px;
-    vertical-align: text-bottom;
+    pointer-events: none;
+    transition: transform 80ms ease-out;
     animation: blink 1s infinite;
 }
 
 /* ---------- TEXT FEEDBACK ---------- */
+.is-paused .caret {
+    animation-play-state: paused;
+}
+
 .correct, .wrong {
     border-radius: 2px;
 }
