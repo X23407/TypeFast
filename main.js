@@ -49,7 +49,7 @@ class main{
         window.location.href = 'home.html';
     }
 
-    onclick(e){
+    onclick(e) {
         // Ignore special keys that aren't used for typing or navigation
         if (e.key.length > 1) {
             const allowed = ["Backspace", "Enter", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
@@ -1327,3 +1327,4 @@ class main{
 
     }
 }
+
