@@ -6,7 +6,6 @@ class main{
         this.wrongCount = 0;
         this.sound =true;
         this.wrongChar = {};
-        this.wrongChar = {};
         this.charTyped = 0;
         this.startTime=0;
         this.endTime =0;
@@ -32,7 +31,6 @@ class main{
         this.dataHandler();
         this.buttonClick(this.mode);
         this.initConstraintUI();
-        this.initConstraintUI();
         this.specialKey = {
                 "ArrowLeft" : "←",
                 "ArrowRight" : "→",
@@ -50,16 +48,6 @@ class main{
     }
 
     onclick(e) {
-        // Ignore special keys that aren't used for typing or navigation
-        if (e.key.length > 1) {
-            const allowed = ["Backspace", "Enter", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
-            if (!allowed.includes(e.key)) {
-                return;
-            }
-        }
-
-        if(e.key == "Tab"){
-            this.tabPressed = true;
         // Ignore special keys that aren't used for typing or navigation
         if (e.key.length > 1) {
             const allowed = ["Backspace", "Enter", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
@@ -313,12 +301,6 @@ class main{
             document.body.appendChild(a);
             a.click();
         } else if (fortext == "Enter"){
-            
-            let a = document.createElement("a");
-            a.href = "stats.html";
-            document.body.appendChild(a);
-            a.click();
-        } else if (fortext == "Enter"){
             let a = document.createElement("a");
             a.href = "stats.html";
             document.body.appendChild(a);
@@ -398,17 +380,6 @@ class main{
         }
     }
 
-    getGenerationCount() {
-        if (this.constraintMode === "time") {
-            return this.selectedTime > 0 ? 100 : 2;
-        } else {
-            if (this.selectedWordMode === "medium") return 4;
-            if (this.selectedWordMode === "large") return 8;
-            if (this.selectedWordMode === "xlarge") return 16;
-            return 2; // short
-        }
-    }
-
     modeSelecter(){
         this.resetTestTiming();
         this.charTyped = this.correctCount = this.wrongCount = this.backspaceCount = 0;
@@ -422,7 +393,6 @@ class main{
         if (redirect == 'improve'){
             text = this.improve();
         } else if(this.mode == "right"){
-        } else if(this.mode == "right"){
                 while(text.length<200){
                     text += this.left_hand_words[Math.trunc(Math.random()*this.left_hand_words.length)] + " "
                 }
@@ -432,11 +402,6 @@ class main{
                 text = this.generateCodeContent();
             }
             else{
-                let count = this.getGenerationCount();
-                for(let i=0; i<count; i++){
-                    let line = this.random_lines[Math.trunc(Math.random()* this.random_lines.length)];
-                    if (line) text += line + " ";
-                }
                 let count = this.getGenerationCount();
                 for(let i=0; i<count; i++){
                     let line = this.random_lines[Math.trunc(Math.random()* this.random_lines.length)];
@@ -624,7 +589,6 @@ class main{
             "relax",
             "code",
             "arrow"
-            "arrow"
         ]
         for (let i=0;i<buttons.length;i++){
             if (mode == buttons[i]){
@@ -646,16 +610,12 @@ class main{
         curData = JSON.parse(curData);
         curData = JSON.parse(curData["wrong_list"]);
         console.log(curData)
-        console.log(curData)
         let text = "";
-        let keys = Object.keys(curData);
-        keys.forEach(element => {
         let keys = Object.keys(curData);
         keys.forEach(element => {
             let choice = [4,5,6];
             let length = choice[Math.trunc(Math.random()*choice.length)];
             //monotonous
-            for (let i=0;i<length && element != " ";i++){
             for (let i=0;i<length && element != " ";i++){
                 text += element;
                 if (i==length-1){
@@ -668,10 +628,8 @@ class main{
         });
         //hybrid
         let hybrid = keys.length;
-        let hybrid = keys.length;
         if (hybrid < 5){
             hybrid = 5;
-        }else if (hybrid > 20){
         }else if (hybrid > 20){
             hybrid = 20;
         }
@@ -684,10 +642,6 @@ class main{
                 if (randomKey != " ") {
                     text += randomKey;
                 }
-                let randomKey = keys[Math.trunc(Math.random()*keys.length)];
-                if (randomKey != " ") {
-                    text += randomKey;
-                }
             }
             text += " ";
         }
@@ -695,64 +649,6 @@ class main{
         return text;
     }
 
-    initConstraintUI() {
-        let toggle = document.getElementById("constraint-toggle");
-        let timeEls = document.querySelectorAll(".constraint-time");
-        let wordEls = document.querySelectorAll(".constraint-word");
-
-        if (this.constraintMode === "time") {
-            if (toggle) toggle.innerText = "Time ▼";
-            timeEls.forEach(el => el.style.display = "");
-            wordEls.forEach(el => el.style.display = "none");
-            
-            let times = [15, 30, 60, 120, 0];
-            times.forEach(t => {
-                let el = document.getElementById(`time-${t}`);
-                if (el) {
-                    if (t === this.selectedTime) el.classList.add("active");
-                    else el.classList.remove("active");
-                }
-            });
-        } else {
-            if (toggle) toggle.innerText = "Word ▼";
-            timeEls.forEach(el => el.style.display = "none");
-            wordEls.forEach(el => el.style.display = "");
-            
-            let words = ["short", "medium", "large", "xlarge"];
-            words.forEach(w => {
-                let el = document.getElementById(`word-${w}`);
-                if (el) {
-                    if (w === this.selectedWordMode) el.classList.add("active");
-                    else el.classList.remove("active");
-                }
-            });
-        }
-        
-        let clock = document.getElementById("clock");
-        if (clock) {
-            if (this.constraintMode === "time" && this.selectedTime > 0) {
-                clock.style.display = "block";
-                clock.innerText = this.selectedTime + "s";
-            } else {
-                clock.style.display = "none";
-            }
-        }
-    }
-
-    toggleConstraintMode() {
-        this.constraintMode = this.constraintMode === "time" ? "word" : "time";
-        localStorage.setItem("constraintMode", this.constraintMode);
-        window.location.reload();
-    }
-
-    setTime(time) {
-        localStorage.setItem("selectedTime", time);
-        window.location.reload();
-    }
-
-    setWordMode(mode) {
-        localStorage.setItem("selectedWordMode", mode);
-        window.location.reload();
     initConstraintUI() {
         let toggle = document.getElementById("constraint-toggle");
         let timeEls = document.querySelectorAll(".constraint-time");
