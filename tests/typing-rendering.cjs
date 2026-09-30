@@ -112,7 +112,7 @@ async function run() {
             m.playSound = value => sounds.push(value);
             function reset(text) {
                 m.resetTestTiming();
-                Object.assign(m, { fullText: text, userIndex: 0, charTyped: 0, correctCount: 0,
+                Object.assign(m, { fullText: text, codeLines: null, userIndex: 0, charTyped: 0, correctCount: 0,
                     wrongCount: 0, backspaceCount: 0, wrongChar: {}, startTime: 0, endTime: 0,
                     timeBtn: false, totalWords: text.split(/\s+/).filter(Boolean).length });
                 completions = [];
@@ -307,6 +307,30 @@ async function run() {
         const screenshot = await command('Page.captureScreenshot');
         writeFileSync(path.join(artifacts, 'typing.png'), Buffer.from(screenshot.data, 'base64'));
 
+        const codeResults = await evaluate(require('./code-mode.cjs'));
+        for (const result of codeResults) console.log('PASS ' + result);
+        for (const width of [390, 768, 1440]) {
+            await command('Emulation.setDeviceMetricsOverride', { width, height: 800, deviceScaleFactor: 1, mobile: false });
+            await evaluate(() => new Promise(resolve => setTimeout(resolve, 300)));
+            const layout = await evaluate(() => {
+                const viewport = document.getElementById('displayer-container');
+                const bounds = viewport.getBoundingClientRect();
+                const caret = m.caret.getBoundingClientRect();
+                const target = m.characterElements[m.userIndex].getBoundingClientRect();
+                return { x: Math.abs(caret.left - target.left), y: Math.abs((caret.top + caret.height / 2) - (target.top + target.height / 2)),
+                    overflow: m.displayer.scrollWidth - viewport.clientWidth,
+                    visible: caret.left >= bounds.left && caret.right <= bounds.right + 3 && caret.top >= bounds.top && caret.bottom <= bounds.bottom,
+                    charsFit: m.characterElements.every(node => {
+                        const rect = node.getBoundingClientRect();
+                        return rect.left >= bounds.left - 1 && rect.right <= bounds.right + 1;
+                    }) };
+            });
+            assert.ok(layout.x < 1 && layout.y < 5 && layout.visible && layout.charsFit && layout.overflow <= 1, 'Code caret/characters fit at ' + width + ': ' + JSON.stringify(layout));
+            const codeScreenshot = await command('Page.captureScreenshot');
+            writeFileSync(path.join(artifacts, `code-${width}.png`), Buffer.from(codeScreenshot.data, 'base64'));
+        }
+        console.log('PASS Code browser resizing, wrapping and caret visibility at 390, 768, 1440 pixels');
+
         await evaluate(() => {
             localStorage.setItem('mode', 'relax');
             localStorage.setItem('constraintMode', 'word');
@@ -335,6 +359,7 @@ async function run() {
         for (const result of afkResults) console.log('PASS ' + result);
 
         await evaluate(() => {
+            localStorage.setItem('mode', 'code');
             localStorage.setItem('constraintMode', 'time');
             localStorage.setItem('selectedTime', '15');
         });
@@ -375,6 +400,7 @@ async function run() {
         console.log('PASS no browser runtime errors');
         console.log('Screenshot: ' + path.join(artifacts, 'typing.png'));
         console.log('Paused screenshot: ' + path.join(artifacts, 'paused.png'));
+        console.log('Code screenshots: ' + artifacts);
     } finally {
         if (socket) socket.close();
         browser.kill();

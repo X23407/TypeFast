@@ -18,7 +18,7 @@ module.exports = function () {
     }));
     function reset(text = 'hello world this is a typing test with enough characters to continue', timed = true) {
         m.resetTestTiming();
-        Object.assign(m, { fullText: text, userIndex: 0, charTyped: 0, correctCount: 0,
+        Object.assign(m, { fullText: text, codeLines: null, userIndex: 0, charTyped: 0, correctCount: 0,
             wrongCount: 0, backspaceCount: 0, wrongChar: {}, selectedTime: 15,
             timeBtn: timed, totalWords: text.split(/\s+/).filter(Boolean).length });
         m.renderTypingText();

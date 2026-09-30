@@ -130,10 +130,7 @@ class main{
             this.appendTypingText(this.currentTextIndex + 100);
         }
         
-        let typedText = this.fullText.substring(0, this.userIndex);
-        let typedWords = typedText.split(/\s+/).filter(w => w.length > 0).length;
-        let counter = document.getElementById("word-counter");
-        if (counter) counter.innerText = `${typedWords} / ${this.totalWords}`;
+        this.updateWordCounter();
         
         this.scheduleCaretPosition();
     }
@@ -144,6 +141,8 @@ class main{
         this.caret = this.textLayer.querySelector(".caret");
         this.characterElements = [];
         this.currentTextIndex = 0;
+        this.renderedCodeLine = 0;
+        this.displayer.classList.toggle("code-mode", Boolean(this.codeLines));
         this.displayer.replaceChildren();
         this.appendTypingText(250);
         this.scheduleCaretPosition();
@@ -159,6 +158,10 @@ class main{
     }
 
     appendTypingText(endIndex) {
+        if (this.codeLines) {
+            this.appendCodeLines(endIndex);
+            return;
+        }
         endIndex = Math.min(endIndex, this.fullText.length);
         // Finish the word so later chunks never change an existing word's wrapping.
         while (endIndex < this.fullText.length && !/\s/.test(this.fullText[endIndex])) {
@@ -187,6 +190,40 @@ class main{
         }
         this.displayer.appendChild(fragment);
         this.currentTextIndex = endIndex;
+    }
+
+    appendCodeLines(endIndex) {
+        const fragment = document.createDocumentFragment();
+        // Append whole logical lines; layout never becomes part of the typing index.
+        while (this.renderedCodeLine < this.codeLines.length) {
+            const line = this.codeLines[this.renderedCodeLine];
+            if (this.currentTextIndex >= endIndex && line.text.length > 0) break;
+            const row = document.createElement("span");
+            row.className = "code-line";
+            row.style.setProperty("--indent", line.indent);
+            for (const character of line.text) {
+                const element = document.createElement("span");
+                element.className = character === " " ? "char space" : "char";
+                element.textContent = character;
+                row.appendChild(element);
+                this.characterElements.push(element);
+            }
+            fragment.appendChild(row);
+            this.currentTextIndex += line.text.length;
+            this.renderedCodeLine++;
+        }
+        this.displayer.appendChild(fragment);
+    }
+
+    updateWordCounter() {
+        const counter = document.getElementById("word-counter");
+        if (!counter) return;
+        if (this.codeLines) {
+            counter.innerText = `${this.userIndex} / ${this.fullText.length} chars`;
+        } else {
+            const typedWords = this.fullText.substring(0, this.userIndex).split(/\s+/).filter(w => w.length > 0).length;
+            counter.innerText = `${typedWords} / ${this.totalWords}`;
+        }
     }
 
     scheduleCaretPosition() {
@@ -347,6 +384,7 @@ class main{
         this.resetTestTiming();
         this.charTyped = this.correctCount = this.wrongCount = this.backspaceCount = 0;
         this.wrongChar = {};
+        this.codeLines = null;
         let text = "";
         let redirect = localStorage.getItem("redirect");
         console.log(redirect);
@@ -361,11 +399,7 @@ class main{
                 text += this.left_hand_words[Math.trunc(Math.random()*this.left_hand_words.length)]
             }
             else if (this.mode == "code"){
-                let count = this.getGenerationCount();
-                for(let i=0; i<count; i++){
-                    let line = this.ultimate_lines[Math.trunc(Math.random()* this.ultimate_lines.length)];
-                    if (line) text += line + " ";
-                }
+                text = this.generateCodeContent();
             }
             else{
                 let count = this.getGenerationCount();
@@ -406,16 +440,44 @@ class main{
             }
             text = text.join(" ");
         }
-        this.fullText = text.trim();
+        this.fullText = this.codeLines ? text : text.trim();
         this.totalWords = this.fullText.split(/\s+/).filter(w => w.length > 0).length;
         this.userIndex = 0;
         
-        let counter = document.getElementById("word-counter");
-        if (counter) {
-            counter.innerText = `0 / ${this.totalWords}`;
-        }
+        this.updateWordCounter();
         
         this.renderTypingText();
+    }
+
+    generateCodeContent() {
+        const collections = CODE_SNIPPETS.cpp;
+        const pick = choices => choices[Math.floor(Math.random() * choices.length)];
+        let collection = pick(collections);
+        let snippets;
+        if (this.constraintMode === "time" && this.selectedTime > 0) {
+            snippets = [];
+            let length = 0;
+            // Each collection is a compatible sequence, not one giant generated program.
+            const target = Math.max(2000, this.selectedTime * 80);
+            while (length < target) {
+                snippets.push(...collection.snippets);
+                length += collection.snippets.reduce((sum, snippet) =>
+                    sum + snippet.lines.reduce((count, line) => count + line.text.length, 0), 0);
+                collection = pick(collections.filter(candidate => candidate !== collection));
+            }
+        } else if (this.constraintMode === "word" && this.selectedWordMode === "xlarge") {
+            snippets = collection.snippets;
+        } else {
+            const size = this.constraintMode === "word" ? this.selectedWordMode : "short";
+            snippets = collection.snippets.filter(snippet => snippet.size === size);
+        }
+
+        this.codeLines = [];
+        for (const snippet of snippets) {
+            if (this.codeLines.length) this.codeLines.push({ indent: 0, text: "" });
+            this.codeLines.push(...snippet.lines);
+        }
+        return this.codeLines.map(line => line.text).join("");
     }
 
     resetTestTiming() {

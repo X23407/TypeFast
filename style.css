@@ -192,6 +192,29 @@ body {
     white-space: nowrap;
 }
 
+#displayer.code-mode {
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+}
+
+#displayer .code-line {
+    display: block;
+    min-height: 1lh;
+    padding-inline-start: min(calc(var(--indent) * 4ch), 25%);
+    white-space: break-spaces;
+    overflow-wrap: anywhere;
+}
+
+#displayer .code-line .space {
+    position: relative;
+}
+
+#displayer .code-line .space.wrong::after {
+    content: "␣";
+    position: absolute;
+    inset: 0;
+    line-height: normal;
+}
+
 /* ---------- CARET ---------- */
 @keyframes blink {
     0%, 100% { opacity: 1; }
