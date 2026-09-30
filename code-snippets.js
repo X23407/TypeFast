@@ -363,7 +363,7 @@ const CODE_SNIPPETS = (() => {
                 id: "arrays",
                 snippets: [
                     snippet("short", [
-                        [0, "array<int, 5> values = {3, 1, 4, 1, 5};"],
+                        [0, "vector<int> values = {3, 1, 4, 1, 5};"],
                         [0, "sort(values.begin(), values.end());"],
                         [0, "int first = values.front();"],
                         [0, "int last = values.back();"]
@@ -380,7 +380,7 @@ const CODE_SNIPPETS = (() => {
                         [0, "cout << mean << '\\n';"]
                     ]),
                     snippet("large", [
-                        [0, "array<int, 5> squares{};"],
+                        [0, "vector<int> squares(5);"],
                         [0, "for (size_t i = 0; i < values.size(); ++i) {"],
                         [1, "squares[i] = values[i] * values[i];"],
                         [0, "}"],
@@ -615,7 +615,7 @@ const CODE_SNIPPETS = (() => {
                         [0, "cout << reversed << '\\n';"]
                     ]),
                     snippet("large", [
-                        [0, "array<int, 10> frequency{};"],
+                        [0, "vector<int> frequency(10);"],
                         [0, "int copy = value;"],
                         [0, ""],
                         [0, "do {"],
@@ -788,7 +788,7 @@ const CODE_SNIPPETS = (() => {
                 snippets: [
                     snippet("short", [
                         [0, "vector<int> values = {1, 2, 2, 3, 1};"],
-                        [0, "array<int, 4> frequency{};"],
+                        [0, "vector<int> frequency(4);"],
                         [0, "int total = 0;"],
                         [0, "int distinct = 0;"]
                     ]),
@@ -803,7 +803,7 @@ const CODE_SNIPPETS = (() => {
                         [0, "cout << total << ' ' << distinct << '\\n';"]
                     ]),
                     snippet("large", [
-                        [0, "array<int, 4> prefix{};"],
+                        [0, "vector<int> prefix(4);"],
                         [0, "prefix[0] = frequency[0];"],
                         [0, ""],
                         [0, "for (size_t i = 1;"],
@@ -1308,7 +1308,7 @@ const CODE_SNIPPETS = (() => {
                         [0, "cout << second.size() << '\\n';"]
                     ]),
                     snippet("large", [
-                        [0, "array<int, 26> balance{};"],
+                        [0, "vector<int> balance(26);"],
                         [0, "for (char ch : first) {"],
                         [1, "++balance[ch - 'a'];"],
                         [0, "}"],

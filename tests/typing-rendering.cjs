@@ -331,6 +331,9 @@ async function run() {
         }
         console.log('PASS Code browser resizing, wrapping and caret visibility at 390, 768, 1440 pixels');
 
+        const whitespaceResults = await evaluate(require('./code-whitespace.cjs'));
+        for (const result of whitespaceResults) console.log('PASS ' + result);
+
         await evaluate(() => {
             localStorage.setItem('mode', 'relax');
             localStorage.setItem('constraintMode', 'word');

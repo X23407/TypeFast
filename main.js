@@ -19,6 +19,13 @@ class main{
         if (!this.mode) {
             this.mode = "relax";
         }
+        this.casePreference = { relax: "lowercase", punctuation: "natural", number: "natural" };
+        for (const mode of Object.keys(this.casePreference)) {
+            const savedCase = localStorage.getItem("casePreference." + mode);
+            if (savedCase === "natural" || savedCase === "lowercase") {
+                this.casePreference[mode] = savedCase;
+            }
+        }
         
         let storedTime = localStorage.getItem("selectedTime");
         this.selectedTime = storedTime !== null ? parseInt(storedTime) : 30;
@@ -41,6 +48,11 @@ class main{
             this.onclick(e);
         })
         document.addEventListener("visibilitychange", () => this.timeupdater());
+        if (document.readyState === "complete") {
+            this.initCaseCommands();
+        } else {
+            window.addEventListener("load", () => this.initCaseCommands(), { once: true });
+        }
         
     }
     setting(){
@@ -86,12 +98,15 @@ class main{
         }
         // Resume before processing this same key, so no input is swallowed.
         if (!this.recordTypingActivity()) return;
+        if (this.codeTyping && e.key !== "Backspace") {
+            this.userIndex = this.codeTyping.forwardIndex(this.fullText, this.userIndex, e.key);
+        }
         let expected = this.fullText[this.userIndex];
         if (e.key == "Backspace"){
             this.correctCount ++;
             this.backspaceCount ++;
             if (this.userIndex == 0) return;
-            this.userIndex--;
+            this.userIndex = this.codeTyping ? this.codeTyping.backspaceIndex() : this.userIndex - 1;
             this.characterElements[this.userIndex].classList.remove("correct", "wrong");
         }else if (this.userIndex >= this.fullText.length){
             if (e.key == "Enter"){
@@ -136,6 +151,7 @@ class main{
     }
 
     renderTypingText() {
+        this.codeTyping = this.codeLines ? new CodeTypingState(WhitespacePolicy.classify(this.codeLines)) : null;
         this.displayer = document.getElementById("displayer");
         this.textLayer = this.displayer.parentElement;
         this.caret = this.textLayer.querySelector(".caret");
@@ -333,6 +349,8 @@ class main{
     saveStatistic(){
         let correct = this.correctCount;
         let extra = this.charTyped - this.phraselength;
+        // Skipped display spaces are neither physical input nor missing input.
+        if (this.codeTyping) extra += this.codeTyping.skippedCount(this.userIndex);
         this.totalElapsedTime = Math.max(0, this.endTime - this.startTime);
         this.activeTypingTime = Math.max(0, this.totalElapsedTime - this.afkTime);
         // WPM includes pauses, so taking breaks cannot inflate a stored score.
@@ -380,6 +398,25 @@ class main{
         }
     }
 
+    initCaseCommands() {
+        if (typeof commandPalette === "undefined") return;
+        for (const [label, preference] of [["Natural", "natural"], ["Lowercase", "lowercase"]]) {
+            const name = "Case: " + label;
+            if (!commandPalette.commands.some(command => command.name === name)) {
+                commandPalette.commands.push({ name, action: () => this.setCasePreference(preference) });
+            }
+        }
+        commandPalette.filteredCommands = [...commandPalette.commands];
+    }
+
+    setCasePreference(preference) {
+        if (!Object.prototype.hasOwnProperty.call(this.casePreference, this.mode)) return;
+        if (preference !== "natural" && preference !== "lowercase") return;
+        this.casePreference[this.mode] = preference;
+        localStorage.setItem("casePreference." + this.mode, preference);
+        window.location.reload();
+    }
+
     modeSelecter(){
         this.resetTestTiming();
         this.charTyped = this.correctCount = this.wrongCount = this.backspaceCount = 0;
@@ -403,31 +440,16 @@ class main{
             }
             else{
                 let count = this.getGenerationCount();
+                let lines = this.mode === "number" ? this.number_lines :
+                    this.mode === "punctuation" ? this.punctuation_lines : this.random_lines;
                 for(let i=0; i<count; i++){
-                    let line = this.random_lines[Math.trunc(Math.random()* this.random_lines.length)];
+                    let line = lines[Math.trunc(Math.random()* lines.length)];
                     if (line) text += line + " ";
                 }
             }
 
         /*-----MODE THAT AFFECT/ADD EXTRA CHAR TO GENERATED TEXT--------*/
-        if (this.mode == "number"){
-            text=text.split(" ");
-            for (let i=0;i<text.length ;i++){
-                text[i] += Math.round(Math.random()*10);
-            }
-            text = text.join(" ");
-        }else if(this.mode == "punctuation"){
-            text=text.split(" ");
-            let punctuation  = [
-                "@", "!", "`", "~", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "=",
-                "{", "}", "[", "]", "|", "\\", ":", ";", "\"", "'", ",", ".", "?", "/","←", "→", "↑" , "↓"
-                ];
-            for (let i=0;i<text.length ;i++){
-                text[i] += punctuation[Math.trunc(Math.random()*punctuation.length)];
-            }
-            text = text.join(" ");
-        }else if(this.mode =="relax"){
-            text = text.toLowerCase();
+        if(this.mode =="relax" && this.casePreference.relax === "lowercase"){
             text = text.replaceAll(".","");
         }
         else if(this.mode == "custom"){
@@ -439,6 +461,9 @@ class main{
                 text[i] += arrow[Math.trunc(Math.random()*arrow.length)];
             }
             text = text.join(" ");
+        }
+        if (this.casePreference[this.mode] === "lowercase") {
+            text = text.toLowerCase();
         }
         this.fullText = this.codeLines ? text : text.trim();
         this.totalWords = this.fullText.split(/\s+/).filter(w => w.length > 0).length;
@@ -710,6 +735,412 @@ class main{
     }
 
     dataHandler(){
+        this.punctuation_lines = [
+            "\"Wait,\" she said, \"did you hear that?\"",
+            "Before leaving, check: keys, wallet, ID, and phone.",
+            "Really? You paid $49.99 for a used lamp?!",
+            "Send the receipt to alex@example.com; I'll file it.",
+            "The note read, \"Don't open folder #42!\"",
+            "Coffee, tea, or water? I'll take tea, thanks.",
+            "The meeting is on Monday (Room 204), not Tuesday.",
+            "Follow @maya_reads for book reviews, essays, and notes.",
+            "Please rename the draft to spring_report_v2.pdf.",
+            "Well... that wasn't quite what I expected!",
+            "Dear Sam, thanks for your help; the parcel arrived today.",
+            "Subject: Revised budget (please review before Friday).",
+            "Hi Lee! Could you resend the attachment, please?",
+            "Contact support@example.org if your order hasn't arrived.",
+            "I've copied finance@example.com; they'll confirm the total.",
+            "Please reply with \"Approved\" or \"Needs changes.\"",
+            "Your message said \"tomorrow\"; did you mean Thursday?",
+            "P.S. Don't forget the signed form!",
+            "Use Reply All only when everyone needs the update.",
+            "Thanks again, Priya -- you've saved us a lot of time.",
+            "The cafe's lunch special costs $12.50 (drink included).",
+            "Two tickets + parking = $38; is that within our budget?",
+            "Save 25% on coats, scarves, and gloves this weekend!",
+            "The price is $89.00, excluding tax and delivery.",
+            "Buy one, get one free -- while supplies last.",
+            "We split the bill 50/50; nobody paid extra.",
+            "The label says \"Final sale: no returns.\"",
+            "A 10% service charge applies to groups of six or more.",
+            "Cash or card? Sorry, we don't accept checks.",
+            "The bakery sells bread, cakes & pastries until dusk.",
+            "Open https://example.com/help and select \"Account.\"",
+            "The file lives at C:\\Users\\Alex\\Documents\\notes.txt.",
+            "Save a backup in D:\\Projects\\Archive\\ before updating.",
+            "Please upload photo_03.jpg, not photo_03_old.jpg.",
+            "Visit docs.example.org/setup for the installation guide.",
+            "The download link ends with ?format=pdf&lang=en.",
+            "Our homepage moved from example.net to example.org.",
+            "The shared folder is \\\\office-server\\public\\reports.",
+            "Rename \"final draft.txt\" to \"final_draft.txt.\"",
+            "Don't delete /home/alex/notes; that directory isn't empty.",
+            "Issue #42 is fixed; issue #43 still needs review.",
+            "Release v2.1.0 (stable) is ready for testing.",
+            "Set timeout=30 in the configuration file.",
+            "The response was {\"status\": \"ok\", \"count\": 3}.",
+            "Use [x] for completed tasks and [ ] for pending ones.",
+            "Replace <name> with your username before continuing.",
+            "Search for *.csv to find the exported spreadsheets.",
+            "The shortcut is Ctrl + S; press it before closing.",
+            "Warning: \"Access denied\" usually means you lack permission.",
+            "Keep the key/value pairs in their original order.",
+            "\"Are you coming?\" he asked. \"We're leaving soon.\"",
+            "\"I'd love to,\" she replied, \"but I'm working late.\"",
+            "\"No, thank you; I've already eaten.\"",
+            "\"Look out!\" someone shouted from the balcony.",
+            "\"Which train -- the express or the local?\"",
+            "She whispered, \"It's a surprise; don't tell anyone.\"",
+            "\"That's my coat, isn't it?\" asked the visitor.",
+            "He smiled: \"At last, a sunny day!\"",
+            "\"Please,\" the child said, \"just one more story.\"",
+            "\"Fine... but this is the last time!\"",
+            "Shopping list: rice, beans, milk, eggs, and soap.",
+            "Pack a jacket (preferably waterproof), boots, and a hat.",
+            "For dinner: soup; bread; salad; and, perhaps, dessert.",
+            "The sign says \"Wet paint!\" -- please keep your distance.",
+            "Don't forget: the spare key is under the blue pot.",
+            "Today's chores: wash dishes, fold laundry, and sweep.",
+            "Please leave a note: who called, when, and why?",
+            "The drawer contains pens, clips, labels & spare batteries.",
+            "Bread? Check. Milk? Check. Coffee? Oops!",
+            "Take the umbrella -- it's already starting to rain.",
+            "Your reservation is confirmed for 7:30 p.m. (Friday).",
+            "Board at Gate B-12; keep your ticket ready.",
+            "The route is north/south, not east/west.",
+            "Check-in opens at 6:00 a.m.; boarding starts later.",
+            "Hotel Wi-Fi: choose \"Guest_Network\" and accept the terms.",
+            "The station's name is St. Mary's; don't miss it.",
+            "Is the ticket one-way or round-trip?",
+            "Turn left at the light, then follow signs for P&R.",
+            "Platform change: use Track #5 instead of Track #3.",
+            "The cafe is opposite the hotel (next to the bank).",
+            "Our office hours are 9:00 a.m.-5:00 p.m., Monday-Friday.",
+            "Please enter dates as DD/MM/YYYY.",
+            "The deadline is 2026-08-12; late entries won't count.",
+            "Lunch is at noon -- or 12:30, if the call runs late.",
+            "Mark \"available\" beside any open time slots.",
+            "The calendar shows \"Review: draft + feedback.\"",
+            "We'll meet on Wed., Sept. 9 (weather permitting).",
+            "Your appointment moved from 10:15 to 10:45; is that OK?",
+            "Reminder: clocks change tonight; check your alarm!",
+            "The timer reads 00:00:30 -- ready, set, go!",
+            "The survey returned 85% \"Yes\" and 15% \"No.\"",
+            "Growth slowed to 2.5%; costs, however, kept rising.",
+            "At 100% zoom, the labels fit; at 125%, they overlap.",
+            "The ratio is 3:2, not 2:3.",
+            "Score: home 4, visitors 3 -- what a finish!",
+            "Total = subtotal + tax - discount.",
+            "For this sample, x < 10 and y > 5.",
+            "The recipe uses a 1/2 cup of sugar (not salt!).",
+            "The box measures 20 x 15 x 8 cm; will it fit?",
+            "A + B = C looks simple, but check the units.",
+            "Post your photos with #WeekendWalks and tag @city_trails.",
+            "My display name is \"River & Sky\"; my handle is @river_sky.",
+            "Please don't share the invite link in public comments.",
+            "Use #help for questions; use #announcements for updates.",
+            "The caption reads, \"Small steps, big changes!\"",
+            "Can you add alt text to IMG_2048.png, please?",
+            "That account isn't mine -- look for the underscore.",
+            "Your username may contain letters, digits, and \"_\".",
+            "Mention @team_lead when the review is ready.",
+            "The post says \"Free entry*\"; read the footnote first.",
+            "The form asks for \"Last name, First name.\"",
+            "Fields marked * are required; the rest are optional.",
+            "Choose one: [A] delivery, [B] pickup, or [C] cancel.",
+            "Add your initials here: ______.",
+            "Please select \"Yes/No\" before moving to the next page.",
+            "Write N/A if the question doesn't apply.",
+            "The field accepts +44 at the start of a phone number.",
+            "Enter your reference code (e.g., REF-204-A).",
+            "The box labeled \"Other:\" needs a short explanation.",
+            "Confirm that you've read the Terms & Conditions.",
+            "The book's title is \"Maps, Myths & Midnight.\"",
+            "Chapter 3: \"A Door Left Open\" begins on page 42.",
+            "Did you read the author's note (at the back)?",
+            "The reviewer called it \"funny, thoughtful, and strange.\"",
+            "I bookmarked \"Travel / History\" for later browsing.",
+            "The catalog lists fiction, poetry, drama, etc.",
+            "This copy is second-hand; the pages are still clean.",
+            "Her favorite line is, \"Begin again -- gently.\"",
+            "Bring your library card; a photo ID isn't enough.",
+            "The shelf label reads A-F, not A-Z.",
+            "Recipe note: stir slowly; don't let the sauce boil.",
+            "Add salt, pepper, and lemon juice -- then taste.",
+            "Use a non-stick pan (or a well-oiled skillet).",
+            "Set the oven to 180 C; bake for 20-25 minutes.",
+            "The jar says \"Peanuts\"; check the allergy warning.",
+            "Tea + toast + a quiet morning = happiness.",
+            "Is this gluten-free, dairy-free, or both?",
+            "The menu lists a soup/salad combo for $8.95.",
+            "Keep the lid closed -- hot steam can escape!",
+            "\"Just a pinch,\" she said, \"not a spoonful!\"",
+            "The test failed: expected \"ready\", received \"pending\".",
+            "Log entry [INFO]: backup completed successfully.",
+            "Log entry [WARN]: disk space is below 10%.",
+            "The template contains {first_name} and {last_name}.",
+            "Please keep the <title> tag short and descriptive.",
+            "The command prints \"Hello, world!\" to the screen.",
+            "Check whether user_id matches account_id.",
+            "The URL contains /search?q=red+shoes&sort=price.",
+            "Use a forward slash (/), not a backslash (\\).",
+            "The pattern [A-Z] matches uppercase letters.",
+            "The printer says \"Paper jam\"; check Tray #2.",
+            "Don't unplug the drive while the light is blinking!",
+            "Battery low: connect power before installing updates.",
+            "This door is alarmed -- emergency exit only.",
+            "Warning: fragile glass inside (handle with care).",
+            "The sign reads \"Staff only\"; visitors must wait here.",
+            "Please don't mix bleach & ammonia.",
+            "The package is marked \"Keep dry / This side up.\"",
+            "Stop! The bridge is closed for repairs.",
+            "Safety check: lights, brakes, tires, and mirrors.",
+            "Would you prefer the blue one, the green one, or neither?",
+            "Isn't that the same cafe we visited last summer?",
+            "Who ordered the extra-large pizza (with olives)?",
+            "Could you check the address -- just to be sure?",
+            "Why does the receipt show \"2 x delivery fee\"?",
+            "Are these your headphones? I found them by the door.",
+            "Should we call, email, or send a text?",
+            "What's the Wi-Fi password? It's on the card.",
+            "Did you mean \"accept\" or \"except\" in that sentence?",
+            "Can we reschedule? Something's come up.",
+            "The workshop covers planning, drafting & editing.",
+            "Please bring a pen/pencil and a notebook.",
+            "Attendance is optional; registration isn't.",
+            "The room has tables, chairs, a projector, etc.",
+            "Today's topic: \"How do we ask better questions?\"",
+            "Write your name on the label (first name only).",
+            "The handout is called workshop_notes_2026.pdf.",
+            "Pair up, compare answers, and discuss: what changed?",
+            "Feedback goes to events@example.org; thank you!",
+            "The session ends with Q&A -- bring your questions.",
+            "We agreed on three goals: clarity, speed, and reliability.",
+            "The team's motto is \"Test, learn, improve.\"",
+            "Please flag any errors with [FIX] in the margin.",
+            "The checklist says: draft -> review -> publish.",
+            "Track expenses under \"Travel\", \"Meals\", or \"Supplies.\"",
+            "The folder includes invoices_01.csv through invoices_12.csv.",
+            "Keep both versions: original.txt and revised.txt.",
+            "The estimate is $1,200-$1,500, depending on materials.",
+            "Add a short note (one or two sentences) explaining why.",
+            "The offer expires at midnight; don't leave it too late!",
+            "The address line should read \"Apt. 4B, 18 Maple St.\"",
+            "Use the side entrance -- the front door sticks.",
+            "The neighbor's cat, Pepper, is asleep on our porch.",
+            "I've left your keys, wallet, and glasses on the desk.",
+            "The card says, \"Good luck -- you'll do great!\"",
+            "Rain, wind, and a broken umbrella: quite a morning!",
+            "It's quiet here... almost too quiet.",
+            "Please return the tools (especially the small screwdriver).",
+            "We made it! Now, where did we park?",
+            "\"See you soon,\" she wrote, \"and travel safely.\"",
+        ];
+
+        this.number_lines = [
+            "Room 204 is on floor 3, beside staircase 2.",
+            "The package weighs 24 kg and costs 499 rupees.",
+            "There were 128 users online at 10:45.",
+            "The laptop has 16 GB of RAM and a 512 GB SSD.",
+            "She completed 8 out of 10 tasks before 5:00.",
+            "Bus 42 arrives at 7:30 in the morning.",
+            "The temperature rose from 27 to 31 degrees.",
+            "The final score was 17-12 after round 3.",
+            "Version 2.7.4 was released in 2026.",
+            "The file contains 1,024 records across 16 columns.",
+            "The apples cost $2.49 per kg; I bought 3 kg.",
+            "Our grocery total was $78.65 for 24 items.",
+            "The cafe charged $499 for 2 meals and 2 drinks.",
+            "A monthly pass costs $45, while 1 ticket costs $3.",
+            "The repair estimate was $125.50, including 2 parts.",
+            "We split the $96 bill equally among 4 people.",
+            "The shirt dropped from $40 to $28 during the sale.",
+            "Delivery costs $60 for orders under $500.",
+            "I paid $19.99 for a notebook set containing 6 books.",
+            "The receipt lists 3 pens at $1.25 each.",
+            "The meeting starts at 09:15 and ends at 10:00.",
+            "Train 128 leaves at 18:40 from platform 6.",
+            "The timer showed 00:02:35 when the runner finished.",
+            "Our flight departs at 23:55 and lands at 06:20.",
+            "The bakery opens at 6:30 and closes at 19:00.",
+            "Please arrive 15 minutes before your 14:45 appointment.",
+            "The call lasted 1 hour and 25 minutes.",
+            "I set 2 alarms, one for 06:00 and one for 06:10.",
+            "The backup runs at 02:30 every 24 hours.",
+            "The film begins at 20:15 and runs for 112 minutes.",
+            "The invoice is dated 12/08/2026 and is due on 26/08/2026.",
+            "Her course runs from 2026-09-01 to 2026-12-18.",
+            "The museum opened in 1984 and expanded in 2012.",
+            "Our lease begins on 01/10/2026 and lasts 12 months.",
+            "The warranty expires on 2027-03-15, after 2 years.",
+            "The archive covers 1990 through 2025 in 36 folders.",
+            "We booked 4 nights, from July 12 to July 16.",
+            "The project began in week 14 and finished in week 22.",
+            "The next inspection is scheduled for 03/11/2026 at 11:00.",
+            "The document was revised on 2026-05-07 at 16:32.",
+            "The shelf is 120 cm wide, 30 cm deep, and 180 cm high.",
+            "The desk measures 140 x 70 cm and weighs 22 kg.",
+            "Cut 8 pieces of wire, each 12.5 cm long.",
+            "The window opening is 1.2 m wide and 1.5 m tall.",
+            "The parcel measures 40 x 25 x 18 cm.",
+            "Leave a 2 mm gap between each of the 6 panels.",
+            "The cable is 3.5 m long with a 6 mm diameter.",
+            "The frame holds a 20 x 30 cm photograph.",
+            "Each tile is 25 cm square; the box contains 12 tiles.",
+            "The storage bin holds 45 liters and weighs 1.8 kg.",
+            "We drove 120 km at an average speed of 60 km/h.",
+            "The trail climbs 450 m over a distance of 6.2 km.",
+            "The station is 850 m away, about a 10-minute walk.",
+            "The cyclist covered 32.5 km in 1 hour and 20 minutes.",
+            "Our car used 18 liters of fuel over 300 km.",
+            "The speed limit drops from 80 km/h to 50 km/h.",
+            "The delivery van made 27 stops across 4 neighborhoods.",
+            "The road trip covers 1,250 km in 3 days.",
+            "The ferry travels 14 km between the 2 islands.",
+            "The route has 11 turns and takes about 35 minutes.",
+            "The forecast predicts 28 degrees at noon and 19 at night.",
+            "Humidity reached 82% while the temperature stayed at 24 C.",
+            "The freezer is set to -18 C; the fridge is set to 4 C.",
+            "Rainfall totaled 12.6 mm over the last 24 hours.",
+            "Wind speeds rose from 15 to 32 km/h by 16:00.",
+            "The weather station is 1,450 m above sea level.",
+            "Visibility fell to 500 m during the 2-hour fog.",
+            "The sensor recorded 21.7 C at 08:00 and 25.3 C at 13:00.",
+            "The tank held 75 liters before we added another 12.5.",
+            "The lab sample measured 0.25 liters and weighed 260 g.",
+            "The team won 3 of its 5 matches this month.",
+            "The match ended 2-1 after 90 minutes.",
+            "She ran 5 km in 26 minutes and 40 seconds.",
+            "The basketball score was 88-84 with 12 seconds left.",
+            "Lane 4 finished in 11.82 seconds, just ahead of lane 6.",
+            "The tournament has 16 teams divided into 4 groups.",
+            "He scored 24 points, including 3 three-pointers.",
+            "The first set ended 6-4 and the second ended 7-5.",
+            "Our relay team covered 400 m in 52.6 seconds.",
+            "The player wore number 18 for 7 seasons.",
+            "Attendance rose from 75% to 92% over 3 months.",
+            "The survey found that 68% of 250 respondents preferred option 2.",
+            "The battery dropped from 100% to 35% in 6 hours.",
+            "Sales grew by 12.5% compared with the previous quarter.",
+            "We reached 95% of our target with 4 days remaining.",
+            "The discount is 20% on orders of 5 items or more.",
+            "The pass rate was 87.5%, with 70 of 80 students passing.",
+            "The dashboard shows 99.9% uptime over 30 days.",
+            "The storage drive is 73% full, leaving 138 GB free.",
+            "The budget increased by 8%, from $2,500 to $2,700.",
+            "The screen resolution is 1920x1080 at 60 Hz.",
+            "The camera records 3840x2160 video at 30 fps.",
+            "The download is 512 MB and should take 4 minutes.",
+            "The server has 8 CPU cores and 32 GB of memory.",
+            "We copied 64 files totaling 2.8 GB to the drive.",
+            "The router supports 2.4 GHz and 5 GHz networks.",
+            "The image is 2048x1536 pixels and occupies 1.6 MB.",
+            "The log contains 4,096 entries from 12 devices.",
+            "The connection averaged 85 Mbps during the 10-minute test.",
+            "The drive holds 2 TB, with 750 GB reserved for backups.",
+            "Order 48216 contains 3 boxes and 12 individual items.",
+            "Employee ID 7305 belongs to the floor 2 reception team.",
+            "Ticket 10482 was opened at 13:24 and assigned to team 4.",
+            "The shipment label reads batch 20260930, crate 018.",
+            "Use reference 583920 when collecting your 2 parcels.",
+            "Locker 317 is beside room 320 on level 3.",
+            "The sample form uses 202-555-0147 as a phone number.",
+            "Our training contact is listed as +1 (202) 555-0186.",
+            "The demo directory shows 01632 960123 for extension 204.",
+            "Enter account reference 004812 and branch code 021.",
+            "Add 250 g of flour and 150 ml of water to the bowl.",
+            "Bake the 12 rolls at 180 C for 22 minutes.",
+            "The recipe serves 4 people and takes 35 minutes.",
+            "Use 1.5 cups of rice with 3 cups of water.",
+            "Each jar holds 450 ml; we filled 8 jars.",
+            "The soup needs 2 carrots, 3 potatoes, and 1 onion.",
+            "Let the dough rest for 45 minutes before dividing it into 6 pieces.",
+            "The tray fits 24 cookies arranged in 4 rows.",
+            "We bought 2.5 kg of oranges and 750 g of grapes.",
+            "Stir in 0.5 teaspoons of salt and cook for 8 minutes.",
+            "There are 28 students in class 7 and 31 in class 8.",
+            "The quiz has 20 questions worth 5 points each.",
+            "Read pages 42 through 58 before lesson 6.",
+            "The library received 135 books across 9 subjects.",
+            "She scored 46 out of 50 on the first assessment.",
+            "The lecture lasts 90 minutes with a 10-minute break.",
+            "The assignment needs 1,200 words and at least 4 references.",
+            "We formed 6 teams of 5 for the workshop.",
+            "The course includes 12 lessons and 3 practice exams.",
+            "The final average was 84.6 across 5 subjects.",
+            "Rent is $950 per month, payable by the 5th.",
+            "We saved $240 in January and $310 in February.",
+            "The annual subscription costs $119.88 for 12 months.",
+            "The invoice subtotal is $180, plus $14.40 in tax.",
+            "Our travel budget is $12,000 for 4 days.",
+            "The deposit was $500, leaving a balance of $1,750.",
+            "The club collected $15 from each of its 48 members.",
+            "The fundraiser received 126 donations totaling $3,840.",
+            "The forecast lists $8,500 in income and $6,900 in expenses.",
+            "We divided the $2,400 equipment budget into 3 equal parts.",
+            "App version 3.2.1 fixes 7 issues reported in version 3.2.0.",
+            "Build 1047 passed all 128 automated checks.",
+            "The database migrated from schema 14 to schema 15.",
+            "The patch reduced startup time from 4.8 to 3.1 seconds.",
+            "Release 1.12.0 includes 6 features and 18 fixes.",
+            "The test ran 10,000 requests with 2 failures.",
+            "We increased the timeout from 15 to 30 seconds.",
+            "The cache holds 2,048 entries and refreshes every 60 seconds.",
+            "The service uses port 8080, while the admin page uses 9090.",
+            "The retry limit is 3, with delays of 1, 2, and 4 seconds.",
+            "The warehouse received 48 cartons, each containing 24 bottles.",
+            "There are 360 chairs arranged in 18 rows.",
+            "The order requires 250 labels and 125 envelopes.",
+            "We counted 72 red parts, 68 blue parts, and 40 green parts.",
+            "The printer produced 600 pages in 25 minutes.",
+            "Each pack contains 8 batteries; we need 5 packs.",
+            "The truck can carry 1,500 kg across its 12 pallets.",
+            "Inventory shows 34 units in aisle 2 and 19 in aisle 5.",
+            "The shipment is split into 3 batches of 120 items.",
+            "We used 17 of the 50 spare screws during assembly.",
+            "Apartment 12B is in building 4, beside entrance 2.",
+            "The garage has 64 spaces across 2 levels.",
+            "Our garden is 8 m long and 5 m wide.",
+            "The washing cycle takes 55 minutes at 40 C.",
+            "The electricity meter changed from 18,420 to 18,596 kWh.",
+            "We replaced 6 bulbs, reducing each from 60 W to 9 W.",
+            "The water tank holds 1,000 liters and refills in 40 minutes.",
+            "The sofa is 210 cm long and seats 3 people.",
+            "The elevator carries up to 8 people or 600 kg.",
+            "The thermostat switches to 20 C at 06:30 each morning.",
+            "The experiment used 3 samples of 0.75 g each.",
+            "The circle has a radius of 5 cm; use 3.14 for pi.",
+            "The result was 0.625 after dividing 5 by 8.",
+            "The sensor takes 100 readings per second for 30 seconds.",
+            "The average of 12, 18, and 24 is 18.",
+            "The map scale is 1:50,000, so 2 cm represents 1 km.",
+            "The solution contains 15 g of salt in 500 ml of water.",
+            "The graph rises from 1.2 to 4.8 over 6 intervals.",
+            "The machine applies 250 N for 0.8 seconds.",
+            "The sample volume fell from 75.0 to 68.5 ml after heating.",
+            "Flight 612 boards at gate 23, starting at 17:10.",
+            "The hotel booking covers rooms 405 and 406 for 3 nights.",
+            "Seat 14A is in row 14, beside seat 14B.",
+            "The museum ticket costs $18 for adults and $9 for children.",
+            "We reached mile marker 72 after driving for 1.5 hours.",
+            "The tour visits 5 sites in 4 hours.",
+            "The luggage allowance is 23 kg plus 1 cabin bag of 7 kg.",
+            "The shuttle leaves every 20 minutes from stop 8.",
+            "The campsite is 2.4 km beyond bridge 3.",
+            "Our group includes 12 adults and 4 children on bus 27.",
+            "The report has 36 pages, 8 charts, and 4 appendices.",
+            "The attendance sheet records 147 visitors before 15:00.",
+            "We processed 320 applications and approved 286.",
+            "The queue dropped from 54 requests to 9 in 12 minutes.",
+            "The team closed 23 tickets on Monday and 19 on Tuesday.",
+            "The monthly summary covers 30 days and 4 regional offices.",
+            "A full box holds 500 sheets, but this one contains 185.",
+            "The display refreshes every 5 seconds for up to 60 users.",
+            "The archive has 2,350 documents dating back to 1998.",
+            "We finished phase 2 on day 18, with 7 days to spare.",
+        ];
+
         this.left_hand_words = [
 "red","sad","fad","dad","bad","bed","bee","bar","bat","bag",
 "cab","car","cat","cast","cart","care","case","cave","cafe","cage",
